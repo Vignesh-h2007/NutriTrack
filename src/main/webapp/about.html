@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>About Project — NutriTrack</title>
+  <meta name="description" content="Personalized Nutrition Management System — B.Tech Computer Science & Data Engineering Mini Project at College of Engineering Adoor."/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    .app-layout { display:grid; grid-template-columns:220px 1fr; min-height:100vh; }
+    .app-sidebar { background:var(--bg2); border-right:1px solid var(--border); padding:1.25rem .75rem; display:flex; flex-direction:column; position:sticky; top:0; height:100vh; overflow-y:auto; z-index:50; width:220px; box-sizing:border-box; }
+    .s-logo { display:flex; align-items:center; gap:.6rem; margin-bottom:2rem; padding:.25rem .5rem; text-decoration:none; color:var(--text); }
+    .s-logo .s-icon { width:36px; height:36px; background:linear-gradient(135deg,var(--ac-green),var(--dk-green)); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+    .s-logo span { font-family:'Outfit',sans-serif; font-weight:800; font-size:1.1rem; }
+    .nav-section { margin-bottom:1.25rem; }
+    .nav-section-label { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--text-dim); padding:0 .6rem; margin-bottom:.4rem; }
+    .nav-item { display:flex; align-items:center; gap:.65rem; padding:.55rem .7rem; border-radius:10px; color:var(--text-muted); font-size:.875rem; font-weight:500; transition:all .2s; margin-bottom:2px; cursor:pointer; text-decoration:none; }
+    .nav-item:hover { background:var(--card); color:var(--text); }
+    .nav-item.active { background:rgba(76,139,74,.18); color:var(--ac-green); font-weight:600; }
+    .nav-item .ni { font-size:1rem; width:18px; text-align:center; }
+    .sidebar-bottom { margin-top:auto; border-top:1px solid var(--border); padding-top:.75rem; }
+    .app-main { padding:1.75rem; overflow-y:auto; min-width:0; }
+    @media(max-width:768px) { .app-layout { grid-template-columns:1fr; } .app-sidebar { position:relative; height:auto; width:100%; } }
+
+    /* Scoped About Page Enhancements */
+    .about-metrics-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .metric-badge-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.1rem;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+    .metric-badge-box:hover {
+      border-color: var(--ac-green);
+      transform: translateY(-2px);
+    }
+    .metric-num {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--ac-green);
+    }
+    .metric-lbl {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .oop-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.35rem;
+      margin-bottom: 1rem;
+      transition: all 0.2s ease;
+    }
+    .oop-card:hover {
+      border-color: var(--gold);
+    }
+    .oop-badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      background: rgba(229,194,0,0.15);
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+    }
+    .dept-logo-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(85,136,221,0.12);
+      border: 1px solid rgba(85,136,221,0.3);
+      color: var(--blue);
+      padding: 0.25rem 0.7rem;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- Unified Sidebar -->
+  <aside class="app-sidebar">
+    <a href="dashboard.html" class="s-logo">
+      <div class="s-icon">🥗</div>
+      <span>NutriTrack</span>
+    </a>
+    <div class="nav-section">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="ni">🏠</span> Dashboard</a>
+      <a href="food.html" class="nav-item"><span class="ni">🥗</span> Food & Meals</a>
+      <a href="workout.html" class="nav-item"><span class="ni">💪</span> Workouts</a>
+      <a href="water.html" class="nav-item"><span class="ni">💧</span> Water Tracker</a>
+      <a href="weight.html" class="nav-item"><span class="ni">⚖️</span> Weight</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Insights & System</div>
+      <a href="reports.html" class="nav-item"><span class="ni">📊</span> Reports</a>
+      <a href="profile.html" class="nav-item"><span class="ni">👤</span> Profile</a>
+      <a href="settings.html" class="nav-item"><span class="ni">⚙️</span> Settings</a>
+      <a href="about.html" class="nav-item active"><span class="ni">ℹ️</span> About Project</a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="user-pill" onclick="window.location.href='profile.html'">
+        <div class="user-avatar" id="sideAvatar">U</div>
+        <div class="user-info">
+          <div class="user-name" id="sideUserName">Loading…</div>
+          <div class="user-goal" id="sideGoal">—</div>
+        </div>
+      </div>
+      <div class="nav-item" style="margin-top:.25rem;color:var(--red)" onclick="logoutUser()">
+        <span class="ni">🚪</span> Log Out
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="app-main">
+
+    <!-- Hero Header Division -->
+    <section class="page-hero">
+      <div class="page-hero-badge">
+        <span>🎓</span> B.Tech Computer Science & Data Engineering Mini Project
+      </div>
+      <h1 class="page-hero-title">Personalized Nutrition Management System</h1>
+      <p class="page-hero-desc">
+        An intelligent health recommendation and biometric tracking framework leveraging user biometrics, physical activity expenditure, medical condition constraints, and nutritional algorithms to synthesize optimal daily caloric targets, custom meal plans, and tailored exercise regimes.
+      </p>
+      <div style="display:flex;gap:0.75rem;margin-top:1.25rem;flex-wrap:wrap">
+        <span class="dept-logo-chip">🏛️ College of Engineering Adoor</span>
+        <span class="dept-logo-chip" style="color:var(--gold);border-color:rgba(229,194,0,0.3);background:rgba(229,194,0,0.1)">☕ Java & Object Oriented Design</span>
+        <span class="dept-logo-chip" style="color:var(--ac-green);border-color:rgba(76,139,74,0.3);background:rgba(76,139,74,0.1)">⚡ Live AI & TDEE Calculations</span>
+      </div>
+    </section>
+
+    <!-- Quick Stats Grid -->
+    <div class="about-metrics-bar">
+      <div class="metric-badge-box">
+        <div class="metric-num">6</div>
+        <div class="metric-lbl">Core Modules</div>
+      </div>
+      <div class="metric-badge-box">
+        <div class="metric-num" style="color:var(--gold)">100%</div>
+        <div class="metric-lbl">OOP Architecture</div>
+      </div>
+      <div class="metric-badge-box">
+        <div class="metric-num" style="color:var(--blue)">9+</div>
+        <div class="metric-lbl">Medical Filters</div>
+      </div>
+      <div class="metric-badge-box">
+        <div class="metric-num" style="color:#ff6b6b">24/7</div>
+        <div class="metric-lbl">Hydration Engine</div>
+      </div>
+    </div>
+
+    <!-- Core Objectives Division -->
+    <div class="section-heading">
+      <div class="section-title">
+        <div class="st-icon">🎯</div>
+        <span>Project Core Objectives</span>
+      </div>
+    </div>
+    <div class="objectives-grid">
+      <div class="obj-card">
+        <div class="obj-icon" style="background:rgba(229,194,0,0.12);color:var(--gold)">🧠</div>
+        <div class="obj-title">Algorithmic Recommendation Engine</div>
+        <p class="obj-desc">
+          Automated computation of Basal Metabolic Rate (BMR) via the Mifflin-St Jeor formulation and Total Daily Energy Expenditure (TDEE), adapted dynamically to user lifestyle and fitness goals.
+        </p>
+      </div>
+
+      <div class="obj-card">
+        <div class="obj-icon" style="background:rgba(76,139,74,0.15);color:var(--ac-green)">🩺</div>
+        <div class="obj-title">Preventative Healthcare Constraints</div>
+        <p class="obj-desc">
+          Personalized clinical rule filters for users presenting condition indicators such as Diabetes, Blood Pressure, Cardiovascular conditions, and Kidney parameters to eliminate harmful dietary items.
+        </p>
+      </div>
+
+      <div class="obj-card">
+        <div class="obj-icon" style="background:rgba(85,136,221,0.15);color:var(--blue)">📊</div>
+        <div class="obj-title">Interactive Data Visualization</div>
+        <p class="obj-desc">
+          High-performance HTML5 Canvas & Chart.js progress trackers, real-time hydration alarm monitors, workout streak counters, and weekly calorie intake analytics for comprehensive user compliance.
+        </p>
+      </div>
+    </div>
+
+    <!-- OOP Principles Division -->
+    <div class="section-heading">
+      <div class="section-title">
+        <div class="st-icon" style="background:rgba(229,194,0,0.15);color:var(--gold)">🧩</div>
+        <span>Object Oriented Programming Implementation</span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:1rem;margin-bottom:2rem">
+      <div class="oop-card">
+        <div class="oop-badge">ENCAPSULATION</div>
+        <h4 style="font-size:0.98rem;margin-bottom:0.3rem">Secure Entity Models</h4>
+        <p style="font-size:0.83rem;color:var(--text-muted)">
+          Entities like <code>User</code>, <code>MealLog</code>, and <code>WorkoutSession</code> maintain private member state with strict validation in mutator and accessor methods.
+        </p>
+      </div>
+      <div class="oop-card">
+        <div class="oop-badge" style="background:rgba(76,139,74,0.15);color:var(--ac-green)">INHERITANCE</div>
+        <h4 style="font-size:0.98rem;margin-bottom:0.3rem">Modular Hierarchy</h4>
+        <p style="font-size:0.83rem;color:var(--text-muted)">
+          Re-usable abstract controller servlets and service layers eliminate code redundancy and provide shared session validation and JSON serialization.
+        </p>
+      </div>
+      <div class="oop-card">
+        <div class="oop-badge" style="background:rgba(85,136,221,0.15);color:var(--blue)">POLYMORPHISM</div>
+        <h4 style="font-size:0.98rem;margin-bottom:0.3rem">Dynamic Strategy Processing</h4>
+        <p style="font-size:0.83rem;color:var(--text-muted)">
+          Flexible activity multiplier strategies and calorie deficit models dynamically compute varied outcomes according to user health objectives.
+        </p>
+      </div>
+      <div class="oop-card">
+        <div class="oop-badge" style="background:rgba(255,107,107,0.15);color:#ff6b6b)">ABSTRACTION</div>
+        <h4 style="font-size:0.98rem;margin-bottom:0.3rem">Clean Service Contracts</h4>
+        <p style="font-size:0.83rem;color:var(--text-muted)">
+          The presentation layer interacts exclusively with high-level service contracts (e.g. <code>UserService</code>, <code>WorkoutService</code>), decoupling business logic from storage.
+        </p>
+      </div>
+    </div>
+
+    <!-- Technology Stack Division -->
+    <div class="section-heading">
+      <div class="section-title">
+        <div class="st-icon" style="background:rgba(85,136,221,0.15);color:var(--blue)">💻</div>
+        <span>Technology Stack</span>
+      </div>
+    </div>
+    <div class="tech-grid">
+      <div class="tech-pill">
+        <div class="tech-pill-icon" style="color:#e34f26">🌐</div>
+        <div>
+          <div class="tech-pill-name">HTML5 & Semantic Markup</div>
+          <div class="tech-pill-role">Responsive Single-Page Layouts</div>
+        </div>
+      </div>
+      <div class="tech-pill">
+        <div class="tech-pill-icon" style="color:#1572b6">🎨</div>
+        <div>
+          <div class="tech-pill-name">Modern CSS3 Glassmorphism</div>
+          <div class="tech-pill-role">Variables, Gradients & Aurora Loops</div>
+        </div>
+      </div>
+      <div class="tech-pill">
+        <div class="tech-pill-icon" style="color:#f7df1e">⚡</div>
+        <div>
+          <div class="tech-pill-name">Vanilla JavaScript (ES6+)</div>
+          <div class="tech-pill-role">Live Canvas, Async Fetch, State Sync</div>
+        </div>
+      </div>
+      <div class="tech-pill">
+        <div class="tech-pill-icon" style="color:#5382a1">☕</div>
+        <div>
+          <div class="tech-pill-name">Java & Jakarta Servlets</div>
+          <div class="tech-pill-role">Enterprise OOP Controller Architecture</div>
+        </div>
+      </div>
+      <div class="tech-pill">
+        <div class="tech-pill-icon" style="color:#00758f">🗄️</div>
+        <div>
+          <div class="tech-pill-name">SQL Database Engine</div>
+          <div class="tech-pill-role">Normalized Relational Persistence</div>
+        </div>
+      </div>
+      <div class="tech-pill">
+        <div class="tech-pill-icon" style="color:#ff6384">📈</div>
+        <div>
+          <div class="tech-pill-name">Chart.js Visualizer</div>
+          <div class="tech-pill-role">Dynamic Multi-Axis Health Analytics</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Academic Guide & Mentor Division -->
+    <div class="section-heading">
+      <div class="section-title">
+        <div class="st-icon" style="background:rgba(229,194,0,0.15);color:var(--gold)">🧑‍🏫</div>
+        <span>Academic Project Guide & Faculty Mentor</span>
+      </div>
+    </div>
+    <div class="mentor-card">
+      <div class="mentor-avatar">KM</div>
+      <div>
+        <h3 class="mentor-name">ASST. PROF. KRISHNENTHU P MANI</h3>
+        <p class="mentor-title">Professor of Object Oriented Programming Language</p>
+        <p class="mentor-dept">
+          Department of Computer Science & Data Engineering<br/>
+          College of Engineering Adoor (CEA), APJ Abdul Kalam Technological University
+        </p>
+      </div>
+    </div>
+
+    <!-- Development Team Showcase Division -->
+    <div class="section-heading">
+      <div class="section-title">
+        <div class="st-icon">👥</div>
+        <span>Project Development Team</span>
+      </div>
+      <span style="font-size:0.82rem;color:var(--text-muted)">B.Tech CSE & Data Science</span>
+    </div>
+
+    <div class="team-showcase">
+      <!-- Vignesh H -->
+      <div class="member-card">
+        <div class="member-avatar" style="background:linear-gradient(135deg, var(--ac-green), #1b4d20)">V</div>
+        <h3 class="member-name">Vignesh H</h3>
+        <p class="member-role">Frontend UI/UX & Interaction Developer</p>
+        <span class="member-id">KTU ID: ADR25CD052</span>
+      </div>
+
+      <!-- Chris -->
+      <div class="member-card">
+        <div class="member-avatar" style="background:linear-gradient(135deg, var(--gold), #7a6300)">C</div>
+        <h3 class="member-name">Chris</h3>
+        <p class="member-role" style="color:var(--gold)">Lead AI & Data Architect</p>
+        <span class="member-id">KTU ID: ADR25CD016</span>
+      </div>
+
+      <!-- Jinson Biju -->
+      <div class="member-card">
+        <div class="member-avatar" style="background:linear-gradient(135deg, var(--blue), #1e3a75)">J</div>
+        <h3 class="member-name">Jinson Biju</h3>
+        <p class="member-role" style="color:var(--blue)">Recommendation Model Dev</p>
+        <span class="member-id">KTU ID: ADR25CD026</span>
+      </div>
+
+      <!-- Abhijith S -->
+      <div class="member-card">
+        <div class="member-avatar" style="background:linear-gradient(135deg, #9b59b6, #4a154b)">A</div>
+        <h3 class="member-name">Abhijith S</h3>
+        <p class="member-role" style="color:#bb86fc">Database Developer & Schema Design</p>
+        <span class="member-id">KTU ID: ADR25CD001</span>
+      </div>
+
+      <!-- Athul -->
+      <div class="member-card">
+        <div class="member-avatar" style="background:linear-gradient(135deg, #e67e22, #783f04)">A</div>
+        <h3 class="member-name">Athul</h3>
+        <p class="member-role" style="color:#f39c12">API & Controller Servlet Dev</p>
+        <span class="member-id">KTU ID: ADR25CD013</span>
+      </div>
+
+      <!-- Visakh B -->
+      <div class="member-card">
+        <div class="member-avatar" style="background:linear-gradient(135deg, #1abc9c, #0e6251)">V</div>
+        <h3 class="member-name">Visakh B</h3>
+        <p class="member-role" style="color:#1abc9c">Recommendation Model & Analytics</p>
+        <span class="member-id">KTU ID: ADR25CD053</span>
+      </div>
+    </div>
+
+    <!-- Institutional Footer Note -->
+    <div style="text-align:center;padding:2rem 0;color:var(--text-dim);font-size:0.84rem;border-top:1px solid var(--border)">
+      &copy; 2026 Personalized Nutrition Management System &bull; College of Engineering Adoor &bull; Department of Computer Science & Data Engineering
+    </div>
+
+  </main>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    // Check authentication or populate user
+    try {
+      const user = await Auth.me();
+      if (user) {
+        setupGlobalUserSidebar();
+      }
+    } catch(e) {}
+  });
+</script>
+</body>
+</html>

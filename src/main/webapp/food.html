@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Food & Meals — NutriTrack</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    .app-layout { display:grid; grid-template-columns:220px 1fr; min-height:100vh; }
+    .app-sidebar { background:var(--bg2); border-right:1px solid var(--border); padding:1.25rem .75rem; display:flex; flex-direction:column; position:sticky; top:0; height:100vh; overflow-y:auto; }
+    .s-logo { display:flex; align-items:center; gap:.6rem; margin-bottom:2rem; padding:.25rem .5rem; }
+    .s-logo .s-icon { width:36px; height:36px; background:linear-gradient(135deg,var(--ac-green),var(--dk-green)); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+    .s-logo span { font-family:'Outfit',sans-serif; font-weight:800; font-size:1.1rem; }
+    .nav-section { margin-bottom:1.25rem; }
+    .nav-section-label { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--text-dim); padding:0 .6rem; margin-bottom:.4rem; }
+    .nav-item { display:flex; align-items:center; gap:.65rem; padding:.55rem .7rem; border-radius:10px; color:var(--text-muted); font-size:.875rem; font-weight:500; transition:all .2s; margin-bottom:2px; cursor:pointer; text-decoration:none; }
+    .nav-item:hover { background:var(--card); color:var(--text); }
+    .nav-item.active { background:rgba(76,139,74,.15); color:var(--ac-green); }
+    .nav-item .ni { font-size:1rem; width:18px; text-align:center; }
+    .sidebar-bottom { margin-top:auto; border-top:1px solid var(--border); padding-top:.75rem; }
+    .user-pill { display:flex; align-items:center; gap:.65rem; padding:.6rem .7rem; border-radius:12px; cursor:pointer; transition:background .2s; }
+    .user-pill:hover { background:var(--card); }
+    .user-avatar { width:36px; height:36px; min-width:36px; min-height:36px; max-width:36px; max-height:36px; border-radius:50%; background:var(--dk-green); display:flex; align-items:center; justify-content:center; font-size:.95rem; font-weight:700; color:var(--ac-green); overflow:hidden; flex-shrink:0; border:2px solid rgba(76,139,74,.4); }
+    .user-avatar img { width:100% !important; height:100% !important; max-width:100% !important; max-height:100% !important; border-radius:50% !important; object-fit:cover !important; display:block !important; aspect-ratio:1/1; }
+    .user-info { flex:1; min-width:0; overflow:hidden; }
+    .user-name { font-size:.85rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .user-goal { font-size:.72rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    
+    .app-main { padding:1.75rem; overflow-y:auto; }
+    .page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; }
+    
+    .food-grid { display:grid; grid-template-columns:2fr 1fr; gap:1.5rem; }
+    .food-item-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1rem; display:flex; align-items:center; justify-content:space-between; margin-bottom:.75rem; transition:border-color .2s; }
+    .food-item-card:hover { border-color:var(--ac-green); }
+    .macro-pill { display:inline-block; font-size:.72rem; padding:.15rem .45rem; border-radius:4px; margin-right:.3rem; background:var(--bg2); }
+
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:1000; padding:1rem; }
+    .modal-overlay.open { display:flex; }
+    .modal-box { background:var(--bg2); border:1px solid var(--border); border-radius:16px; width:100%; max-width:480px; padding:1.5rem; position:relative; }
+    
+    .tab-bar { display:flex; gap:.5rem; border-bottom:1px solid var(--border); margin-bottom:1.25rem; }
+    .tab-btn { padding:.6rem 1rem; border:none; background:none; color:var(--text-muted); font-size:.875rem; font-weight:600; cursor:pointer; border-bottom:2px solid transparent; }
+    .tab-btn.active { color:var(--ac-green); border-bottom-color:var(--ac-green); }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <!-- Sidebar -->
+  <aside class="app-sidebar">
+    <div class="s-logo"><div class="s-icon">🥗</div><span>NutriTrack</span></div>
+    <div class="nav-section">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="ni">🏠</span> Dashboard</a>
+      <a href="food.html" class="nav-item active"><span class="ni">🥗</span> Food & Meals</a>
+      <a href="workout.html" class="nav-item"><span class="ni">💪</span> Workouts</a>
+      <a href="water.html" class="nav-item"><span class="ni">💧</span> Water Tracker</a>
+      <a href="weight.html" class="nav-item"><span class="ni">⚖️</span> Weight</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Insights & System</div>
+      <a href="reports.html" class="nav-item"><span class="ni">📊</span> Reports</a>
+      <a href="profile.html" class="nav-item"><span class="ni">👤</span> Profile</a>
+      <a href="settings.html" class="nav-item"><span class="ni">⚙️</span> Settings</a>
+      <a href="about.html" class="nav-item"><span class="ni">ℹ️</span> About Project</a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="user-pill" onclick="window.location.href='profile.html'">
+        <div class="user-avatar" id="sideAvatar">U</div>
+        <div class="user-info">
+          <div class="user-name" id="sideUserName">Loading…</div>
+          <div class="user-goal" id="sideGoal">—</div>
+        </div>
+      </div>
+      <div class="nav-item" style="margin-top:.25rem;color:var(--red)" onclick="logoutUser()">
+        <span class="ni">🚪</span> Log Out
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="app-main">
+    <div class="page-header">
+      <div>
+        <h1>Food & Meal Tracker</h1>
+        <p style="color:var(--text-muted);font-size:.875rem">Search foods, log your meals, and discover AI-recommended items.</p>
+      </div>
+      <button class="btn btn-primary" onclick="openCustomFoodModal()">+ Create Custom Food</button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('catalog', this)">🥦 Food Catalog & Search</button>
+      <button class="tab-btn" onclick="switchTab('logs', this)">🍽️ Logged Meals Today</button>
+      <button class="tab-btn" onclick="switchTab('recommend', this)">🌟 AI Recommendations</button>
+    </div>
+
+    <!-- Tab 1: Catalog & Search -->
+    <div id="tabCatalog">
+      <div class="card" style="margin-bottom:1.25rem">
+        <div style="display:flex;gap:.75rem;align-items:center">
+          <input class="form-control" type="text" id="searchInput" placeholder="Search food by name (e.g. Chicken, Oats, Rice)..." onkeyup="handleSearch()"/>
+          <select class="form-control" id="categoryFilter" style="max-width:180px" onchange="loadFoodCatalog()">
+            <option value="">All Categories</option>
+            <option value="PROTEIN">Protein</option>
+            <option value="CARBS">Carbs</option>
+            <option value="FRUITS">Fruits</option>
+            <option value="VEGETABLES">Vegetables</option>
+            <option value="DAIRY">Dairy</option>
+            <option value="SNACKS">Snacks</option>
+          </select>
+        </div>
+      </div>
+      <div id="foodList"><div class="spinner"></div></div>
+    </div>
+
+    <!-- Tab 2: Logged Meals -->
+    <div id="tabLogs" style="display:none">
+      <div class="card" style="margin-bottom:1.25rem;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-weight:600">Date:</span>
+        <input class="form-control" type="date" id="logDate" style="max-width:180px" onchange="loadMealLogs()"/>
+      </div>
+      <div class="card">
+        <div id="mealLogsContainer"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Recommendations -->
+    <div id="tabRecommend" style="display:none">
+      <div class="card" style="margin-bottom:1.25rem">
+        <h3 style="font-size:1.1rem;margin-bottom:.5rem">Personalized Food Recommendations</h3>
+        <p style="color:var(--text-muted);font-size:.875rem;margin-bottom:1rem">Tailored to your health goals, medical conditions, and nutritional rules.</p>
+        
+        <div style="background:rgba(229,194,0,.1);border:1px solid rgba(229,194,0,.3);border-radius:10px;padding:.8rem 1rem;font-size:.82rem;color:var(--gold);display:flex;align-items:center;gap:.6rem">
+          <span style="font-size:1.2rem">⚕️</span>
+          <span>Recommendations are generated from the health information provided by you. For medical conditions, follow your doctor's or qualified healthcare professional's dietary advice.</span>
+        </div>
+      </div>
+      <div id="recommendList"><div class="spinner"></div></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Modal: Log Meal -->
+<div class="modal-overlay" id="logMealModal">
+  <div class="modal-box">
+    <h3 style="font-size:1.2rem;margin-bottom:1rem">Log Food Item</h3>
+    <input type="hidden" id="modalFoodId"/>
+    <div class="form-group">
+      <label>Food Item</label>
+      <input class="form-control" id="modalFoodName" readonly style="opacity:.8"/>
+    </div>
+    <div class="form-group">
+      <label>Meal Type</label>
+      <select class="form-control" id="modalMealType">
+        <option value="BREAKFAST">Breakfast</option>
+        <option value="LUNCH">Lunch</option>
+        <option value="DINNER">Dinner</option>
+        <option value="SNACK">Snack</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Quantity (Grams)</label>
+      <input class="form-control" type="number" id="modalGrams" value="100" min="1" max="2000" oninput="calculateModalNutrition()"/>
+    </div>
+    <div style="background:var(--bg);padding:1rem;border-radius:10px;margin-bottom:1.25rem;font-size:.875rem" id="modalNutritionPreview">
+      Calories: <span id="prevCal" style="color:var(--gold);font-weight:700">0</span> kcal | 
+      P: <span id="prevP">0</span>g | C: <span id="prevC">0</span>g | F: <span id="prevF">0</span>g
+    </div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal('logMealModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitLogMeal()">Log Meal</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Custom Food -->
+<div class="modal-overlay" id="customFoodModal">
+  <div class="modal-box">
+    <h3 style="font-size:1.2rem;margin-bottom:1rem">Create Custom Food</h3>
+    <div class="form-group">
+      <label>Food Name *</label>
+      <input class="form-control" id="cFoodName" placeholder="e.g. Home Protein Shake"/>
+    </div>
+    <div class="form-group">
+      <label>Category</label>
+      <select class="form-control" id="cCategory">
+        <option value="PROTEIN">Protein</option>
+        <option value="CARBS">Carbs</option>
+        <option value="FRUITS">Fruits</option>
+        <option value="VEGETABLES">Vegetables</option>
+        <option value="DAIRY">Dairy</option>
+        <option value="SNACKS">Snacks</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+      <div class="form-group">
+        <label>Calories (per 100g) *</label>
+        <input class="form-control" type="number" id="cCalories" placeholder="250"/>
+      </div>
+      <div class="form-group">
+        <label>Protein (g)</label>
+        <input class="form-control" type="number" step="0.1" id="cProtein" placeholder="20"/>
+      </div>
+      <div class="form-group">
+        <label>Carbs (g)</label>
+        <input class="form-control" type="number" step="0.1" id="cCarbs" placeholder="30"/>
+      </div>
+      <div class="form-group">
+        <label>Fat (g)</label>
+        <input class="form-control" type="number" step="0.1" id="cFat" placeholder="5"/>
+      </div>
+    </div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1rem">
+      <button class="btn btn-secondary" onclick="closeModal('customFoodModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitCustomFood()">Save Food</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="js/api.js"></script>
+<script>
+let foodCatalogData = [];
+let selectedFood = null;
+
+document.getElementById('logDate').value = today();
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tabCatalog').style.display = tab === 'catalog' ? 'block' : 'none';
+  document.getElementById('tabLogs').style.display = tab === 'logs' ? 'block' : 'none';
+  document.getElementById('tabRecommend').style.display = tab === 'recommend' ? 'block' : 'none';
+
+  if (tab === 'catalog') loadFoodCatalog();
+  else if (tab === 'logs') loadMealLogs();
+  else if (tab === 'recommend') loadRecommendations();
+}
+
+async function loadFoodCatalog() {
+  try {
+    const listEl = document.getElementById('foodList');
+    listEl.innerHTML = '<div class="spinner"></div>';
+    foodCatalogData = await Food.getAll();
+    renderFoodCatalog(foodCatalogData);
+  } catch(e) {
+    showToast(e.message, 'error');
+  }
+}
+
+function renderFoodCatalog(foods) {
+  const catFilter = document.getElementById('categoryFilter').value;
+  const filtered = catFilter ? foods.filter(f => f.category === catFilter) : foods;
+  const container = document.getElementById('foodList');
+  if (filtered.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-muted);padding:2rem;text-align:center">No food items found.</p>';
+    return;
+  }
+  container.innerHTML = filtered.map(f => `
+    <div class="food-item-card">
+      <div>
+        <div style="font-weight:700;font-size:1rem;margin-bottom:.25rem">${f.name}</div>
+        <div>
+          <span class="macro-pill" style="color:var(--ac-green)">P: ${f.protein}g</span>
+          <span class="macro-pill" style="color:var(--gold)">C: ${f.carbs}g</span>
+          <span class="macro-pill" style="color:var(--orange)">F: ${f.fat}g</span>
+          <span style="font-size:.78rem;color:var(--text-dim)">per 100g</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:1rem">
+        <span style="font-family:'Outfit',sans-serif;font-weight:800;color:var(--gold);font-size:1.1rem">${f.calories} <span style="font-size:.75rem">kcal</span></span>
+        <button class="btn btn-primary btn-sm" onclick="openLogModal(${f.foodId})">+ Log</button>
+      </div>
+    </div>`).join('');
+}
+
+let searchTimer;
+function handleSearch() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(async () => {
+    const q = document.getElementById('searchInput').value.trim();
+    if (!q) { renderFoodCatalog(foodCatalogData); return; }
+    try {
+      const results = await Food.search(q);
+      renderFoodCatalog(results);
+    } catch(e) { showToast(e.message, 'error'); }
+  }, 300);
+}
+
+function openLogModal(foodId) {
+  selectedFood = foodCatalogData.find(f => f.foodId === foodId);
+  if (!selectedFood) return;
+  document.getElementById('modalFoodId').value = foodId;
+  document.getElementById('modalFoodName').value = selectedFood.name;
+  document.getElementById('modalGrams').value = 100;
+  calculateModalNutrition();
+  document.getElementById('logMealModal').classList.add('open');
+}
+
+function calculateModalNutrition() {
+  if (!selectedFood) return;
+  const grams = parseFloat(document.getElementById('modalGrams').value) || 0;
+  const ratio = grams / 100;
+  document.getElementById('prevCal').textContent = Math.round(selectedFood.calories * ratio);
+  document.getElementById('prevP').textContent = (selectedFood.protein * ratio).toFixed(1);
+  document.getElementById('prevC').textContent = (selectedFood.carbs * ratio).toFixed(1);
+  document.getElementById('prevF').textContent = (selectedFood.fat * ratio).toFixed(1);
+}
+
+async function submitLogMeal() {
+  const foodId = parseInt(document.getElementById('modalFoodId').value);
+  const mealType = document.getElementById('modalMealType').value;
+  const grams = parseFloat(document.getElementById('modalGrams').value);
+  if (!grams || grams <= 0) { showToast('Enter valid grams', 'error'); return; }
+  try {
+    await Meal.logMeal({ foodId, mealType, quantityGrams: grams, logDate: today() });
+    showToast('Meal logged successfully! 🥗', 'success');
+    closeModal('logMealModal');
+    loadMealLogs();
+  } catch(e) {
+    showToast(e.message, 'error');
+  }
+}
+
+async function loadMealLogs() {
+  const d = document.getElementById('logDate').value || today();
+  try {
+    const logs = await Meal.getLogs(d);
+    const container = document.getElementById('mealLogsContainer');
+    if (!logs || logs.length === 0) {
+      container.innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:1.5rem">No meals logged on ${d}.</p>`;
+      return;
+    }
+    
+    // Separate active/pending meals from completed meals
+    const pendingMeals = logs.filter(l => l.status !== 'COMPLETED');
+    const completedMeals = logs.filter(l => l.status === 'COMPLETED');
+
+    const totalCal = logs.reduce((a,l) => a + (l.calories||0), 0);
+    const completedCal = completedMeals.reduce((a,l) => a + (l.calories||0), 0);
+
+    let html = `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:.75rem;border-bottom:1px solid var(--border);margin-bottom:.75rem">
+        <div>
+          <span style="font-weight:700">Total Calories:</span>
+          <span style="color:var(--gold);font-weight:800;margin-left:.3rem">${Math.round(totalCal)} kcal</span>
+        </div>
+        <div>
+          <span style="font-size:.8rem;color:var(--ac-green);font-weight:600">✓ Completed in Reports: ${Math.round(completedCal)} kcal (${completedMeals.length})</span>
+        </div>
+      </div>`;
+
+    if (pendingMeals.length === 0) {
+      html += `<div style="text-align:center;padding:1.5rem;color:var(--text-muted)">
+        <p style="font-size:1.1rem;color:var(--ac-green);font-weight:700">🎉 All meals completed for today!</p>
+        <p style="font-size:.85rem;margin-top:.3rem">They are recorded and reflected in your Nutritional Reports.</p>
+      </div>`;
+    } else {
+      html += `
+        <div style="font-size:.8rem;text-transform:uppercase;color:var(--text-dim);font-weight:700;margin-bottom:.5rem">Pending Logged Meals (Click Complete to Record in Reports)</div>
+        <div style="margin-bottom:1rem">` + pendingMeals.map(l => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 0;border-bottom:1px solid var(--border)">
+          <div>
+            <span class="badge" style="margin-right:.5rem">${l.mealType}</span>
+            <span style="font-weight:600">${l.foodName}</span>
+            <span style="color:var(--text-muted);font-size:.8rem;margin-left:.5rem">(${l.quantityGrams}g)</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:.6rem">
+            <span style="font-weight:700;color:var(--gold);margin-right:.5rem">${Math.round(l.calories)} kcal</span>
+            <button class="btn btn-primary btn-sm" onclick="completeMealLog(${l.logId})" style="background:var(--ac-green);color:#fff;border-color:var(--ac-green);padding:.35rem .75rem" title="Mark as eaten & record in reports">✓ Completed</button>
+            <button class="btn btn-secondary btn-sm" onclick="deleteMealLog(${l.logId})" style="color:var(--red);border-color:rgba(224,85,85,.4);padding:.35rem .6rem">🗑️ Delete</button>
+          </div>
+        </div>`).join('') + `</div>`;
+    }
+
+    if (completedMeals.length > 0) {
+      html += `
+        <details style="margin-top:1rem;background:var(--bg3);border-radius:10px;padding:.75rem 1rem">
+          <summary style="cursor:pointer;font-weight:700;font-size:.85rem;color:var(--ac-green)">
+            ✅ View Completed Meals Today (${completedMeals.length})
+          </summary>
+          <div style="margin-top:.75rem">
+            ${completedMeals.map(l => `
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.85rem">
+                <div>
+                  <span style="color:var(--ac-green)">✓</span>
+                  <span style="font-weight:600;margin-left:.3rem">${l.foodName}</span>
+                  <span style="color:var(--text-dim);font-size:.78rem">(${l.mealType}, ${l.quantityGrams}g)</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:.6rem">
+                  <span style="color:var(--gold);font-weight:700">${Math.round(l.calories)} kcal</span>
+                  <button class="btn btn-secondary btn-sm" onclick="deleteMealLog(${l.logId})" style="color:var(--red);border-color:rgba(224,85,85,.3);padding:.15rem .4rem;font-size:.72rem">Delete</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </details>`;
+    }
+
+    container.innerHTML = html;
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function completeMealLog(logId) {
+  try {
+    await Meal.completeMeal(logId);
+    showToast('Meal completed & sent to your Reports! 🥗✓', 'success');
+    loadMealLogs();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function deleteMealLog(logId) {
+  if (!confirm('Are you sure you want to delete this meal?')) return;
+  try {
+    await Meal.deleteMeal(logId);
+    showToast('Meal deleted', 'success');
+    loadMealLogs();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function loadRecommendations() {
+  try {
+    const container = document.getElementById('recommendList');
+    container.innerHTML = '<div class="spinner"></div>';
+    const recs = await Food.recommend();
+    container.innerHTML = recs.map(f => `
+      <div class="food-item-card">
+        <div>
+          <div style="font-weight:700;font-size:1.05rem;margin-bottom:.25rem">🌟 ${f.name}</div>
+          <span class="macro-pill" style="color:var(--ac-green)">P: ${f.protein}g</span>
+          <span class="macro-pill" style="color:var(--gold)">C: ${f.carbs}g</span>
+          <span class="macro-pill" style="color:var(--orange)">F: ${f.fat}g</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:1rem">
+          <span style="font-weight:800;color:var(--gold)">${f.calories} kcal</span>
+          <button class="btn btn-primary btn-sm" onclick="openLogModal(${f.foodId})">+ Log</button>
+        </div>
+      </div>`).join('') || '<p style="color:var(--text-muted)">No recommendations currently available.</p>';
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function openCustomFoodModal() {
+  document.getElementById('customFoodModal').classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+async function submitCustomFood() {
+  const name = document.getElementById('cFoodName').value.trim();
+  const category = document.getElementById('cCategory').value;
+  const calories = parseFloat(document.getElementById('cCalories').value);
+  const protein = parseFloat(document.getElementById('cProtein').value) || 0;
+  const carbs = parseFloat(document.getElementById('cCarbs').value) || 0;
+  const fat = parseFloat(document.getElementById('cFat').value) || 0;
+
+  if (!name || !calories) { showToast('Name and calories are required', 'error'); return; }
+  try {
+    await Food.create({ name, category, calories, protein, carbs, fat, servingUnit:'grams' });
+    showToast('Custom food saved! 🥑', 'success');
+    closeModal('customFoodModal');
+    loadFoodCatalog();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function logoutUser() {
+  try { await Auth.logout(); } catch {}
+  localStorage.removeItem('currentUser');
+  window.location.href = 'login.html';
+}
+
+loadFoodCatalog();
+</script>
+</body>
+</html>

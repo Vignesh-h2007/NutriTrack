@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Water Hydration — NutriTrack</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    .app-layout { display:grid; grid-template-columns:220px 1fr; min-height:100vh; }
+    .app-sidebar { background:var(--bg2); border-right:1px solid var(--border); padding:1.25rem .75rem; display:flex; flex-direction:column; position:sticky; top:0; height:100vh; overflow-y:auto; }
+    .s-logo { display:flex; align-items:center; gap:.6rem; margin-bottom:2rem; padding:.25rem .5rem; }
+    .s-logo .s-icon { width:36px; height:36px; background:linear-gradient(135deg,var(--ac-green),var(--dk-green)); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+    .s-logo span { font-family:'Outfit',sans-serif; font-weight:800; font-size:1.1rem; }
+    .nav-section { margin-bottom:1.25rem; }
+    .nav-section-label { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--text-dim); padding:0 .6rem; margin-bottom:.4rem; }
+    .nav-item { display:flex; align-items:center; gap:.65rem; padding:.55rem .7rem; border-radius:10px; color:var(--text-muted); font-size:.875rem; font-weight:500; transition:all .2s; margin-bottom:2px; cursor:pointer; text-decoration:none; }
+    .nav-item:hover { background:var(--card); color:var(--text); }
+    .nav-item.active { background:rgba(76,139,74,.15); color:var(--ac-green); }
+    .nav-item .ni { font-size:1rem; width:18px; text-align:center; }
+    .sidebar-bottom { margin-top:auto; border-top:1px solid var(--border); padding-top:.75rem; }
+    .user-pill { display:flex; align-items:center; gap:.65rem; padding:.6rem .7rem; border-radius:12px; cursor:pointer; transition:background .2s; }
+    .user-pill:hover { background:var(--card); }
+    .user-avatar { width:36px; height:36px; min-width:36px; min-height:36px; max-width:36px; max-height:36px; border-radius:50%; background:var(--dk-green); display:flex; align-items:center; justify-content:center; font-size:.95rem; font-weight:700; color:var(--ac-green); overflow:hidden; flex-shrink:0; border:2px solid rgba(76,139,74,.4); }
+    .user-avatar img { width:100% !important; height:100% !important; max-width:100% !important; max-height:100% !important; border-radius:50% !important; object-fit:cover !important; display:block !important; aspect-ratio:1/1; }
+    .user-info { flex:1; min-width:0; overflow:hidden; }
+    .user-name { font-size:.85rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .user-goal { font-size:.72rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+    .app-main { padding:1.75rem; overflow-y:auto; }
+    .page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; }
+
+    .water-hero { background:linear-gradient(135deg, rgba(85,136,221,.15), rgba(44,63,45,.2)); border:1px solid var(--blue); border-radius:20px; padding:2rem; text-align:center; margin-bottom:1.5rem; }
+    .water-val { font-family:'Outfit',sans-serif; font-size:3.5rem; font-weight:800; color:var(--blue); line-height:1.1; margin:.2rem 0; }
+    
+    .quick-add-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:1rem; margin-bottom:1.5rem; }
+    .quick-add-btn { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:1.2rem 1rem; text-align:center; cursor:pointer; transition:all .2s; }
+    .quick-add-btn:hover { border-color:var(--blue); background:rgba(85,136,221,.12); transform:translateY(-3px); box-shadow:0 4px 15px rgba(85,136,221,.2); }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <!-- Sidebar -->
+  <aside class="app-sidebar">
+    <div class="s-logo"><div class="s-icon">🥗</div><span>NutriTrack</span></div>
+    <div class="nav-section">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="ni">🏠</span> Dashboard</a>
+      <a href="food.html" class="nav-item"><span class="ni">🥗</span> Food & Meals</a>
+      <a href="workout.html" class="nav-item"><span class="ni">💪</span> Workouts</a>
+      <a href="water.html" class="nav-item active"><span class="ni">💧</span> Water Tracker</a>
+      <a href="weight.html" class="nav-item"><span class="ni">⚖️</span> Weight</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Insights & System</div>
+      <a href="reports.html" class="nav-item"><span class="ni">📊</span> Reports</a>
+      <a href="profile.html" class="nav-item"><span class="ni">👤</span> Profile</a>
+      <a href="settings.html" class="nav-item"><span class="ni">⚙️</span> Settings</a>
+      <a href="about.html" class="nav-item"><span class="ni">ℹ️</span> About Project</a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="user-pill" onclick="window.location.href='profile.html'">
+        <div class="user-avatar" id="sideAvatar">U</div>
+        <div class="user-info">
+          <div class="user-name" id="sideUserName">Loading…</div>
+          <div class="user-goal" id="sideGoal">—</div>
+        </div>
+      </div>
+      <div class="nav-item" style="margin-top:.25rem;color:var(--red)" onclick="logoutUser()">
+        <span class="ni">🚪</span> Log Out
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="app-main">
+    <div class="page-header">
+      <div>
+        <h1>Hydration Tracker</h1>
+        <p style="color:var(--text-muted);font-size:.875rem">Monitor daily water consumption, set custom goals, and stay reminded with hydration alarms.</p>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="openGoalModal()" style="display:inline-flex;align-items:center;gap:.4rem">
+        <span>⚙️</span> Customize Daily Goal
+      </button>
+    </div>
+
+    <!-- Water Hero Display -->
+    <div class="water-hero">
+      <div style="font-size:2.8rem;margin-bottom:.3rem">💧</div>
+      <div class="water-val" id="todayTotalMl">0 ml</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap">
+        <span style="color:var(--text-muted);font-size:.9rem">Target Goal: <strong id="targetGoalMl" style="color:var(--text)">2,500</strong> ml</span>
+        <button class="avatar-action-btn" onclick="openGoalModal()" style="padding:.2rem .6rem;font-size:.75rem">
+          ✏️ Edit Goal
+        </button>
+        <span id="remainingBadge" style="font-size:.78rem;background:rgba(85,136,221,.15);color:var(--blue);padding:.2rem .6rem;border-radius:6px;font-weight:700">
+          2,500 ml left
+        </span>
+      </div>
+      <div class="progress-bar progress-blue" style="max-width:440px;margin:0 auto;height:14px;border-radius:7px">
+        <div class="progress-fill" id="waterFill" style="width:0%;transition:width 0.5s ease"></div>
+      </div>
+    </div>
+
+    <!-- Smart Hydration Alarm & Reminders Center -->
+    <div class="alarm-card">
+      <div class="alarm-header-row">
+        <div>
+          <div style="display:flex;align-items:center;gap:.6rem">
+            <h3 style="font-size:1.15rem;margin:0">⏰ Smart Hydration Alarm</h3>
+            <span class="alarm-status-pill" id="alarmStatusPill">
+              <span class="pulse-dot"></span>
+              <span id="alarmStatusLabel">Alarm Paused</span>
+            </span>
+          </div>
+          <p style="font-size:.8rem;color:var(--text-muted);margin-top:.2rem">
+            Get chime sounds and remark notifications to remind you to drink water on schedule.
+          </p>
+        </div>
+        <label class="toggle-switch" title="Toggle Hydration Alarm">
+          <input type="checkbox" id="alarmToggle" onchange="toggleAlarmSwitch(this.checked)"/>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <!-- Live Countdown Widget -->
+      <div class="countdown-box">
+        <div>
+          <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted)">
+            Next Hydration Chime In
+          </div>
+          <div class="countdown-digits" id="waterAlarmCountdown">--:--</div>
+        </div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <button class="btn btn-secondary btn-sm" onclick="testAlarmNow()" title="Preview chime sound and reminder dialog">
+            🔔 Test Ring
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="WaterAlarm.snooze(10)" title="Delay alarm by 10 minutes">
+            ⏰ Snooze 10m
+          </button>
+        </div>
+      </div>
+
+      <!-- Alarm Frequency and Remark Configuration -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem">
+        <div>
+          <label style="font-size:.85rem;font-weight:600;display:block;margin-bottom:.4rem">Reminder Interval</label>
+          <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:.4rem;margin-bottom:.6rem">
+            <button type="button" class="btn btn-secondary btn-sm alarm-freq-btn" onclick="selectInterval(30, this)">30 Min</button>
+            <button type="button" class="btn btn-secondary btn-sm alarm-freq-btn" onclick="selectInterval(45, this)">45 Min</button>
+            <button type="button" class="btn btn-secondary btn-sm alarm-freq-btn active" onclick="selectInterval(60, this)">1 Hour</button>
+            <button type="button" class="btn btn-secondary btn-sm alarm-freq-btn" onclick="selectInterval(90, this)">1.5 Hr</button>
+            <button type="button" class="btn btn-secondary btn-sm alarm-freq-btn" onclick="selectInterval(120, this)">2 Hours</button>
+            <button type="button" class="btn btn-secondary btn-sm alarm-freq-btn" onclick="selectInterval(180, this)">3 Hours</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:.75rem;font-size:.82rem;color:var(--text-muted);margin-top:.4rem">
+            <label style="display:flex;align-items:center;gap:.35rem;cursor:pointer">
+              <input type="checkbox" id="alarmSoundCb" checked onchange="updateAlarmOptions()"/>
+              <span>🔔 Play Audio Chime</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:.35rem;cursor:pointer">
+              <input type="checkbox" id="alarmNotifyCb" checked onchange="updateAlarmOptions()"/>
+              <span>🖥️ Desktop Alerts</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label style="font-size:.85rem;font-weight:600;display:block;margin-bottom:.4rem">
+            Custom Reminder Remark / Motivational Note
+          </label>
+          <input class="form-control" type="text" id="alarmRemarkInput" 
+                 placeholder="e.g. Time to hydrate! Drink a glass of fresh water 💧"
+                 onchange="updateAlarmRemark(this.value)"/>
+          <div class="preset-remarks-wrap">
+            <span class="remark-chip" onclick="applyRemarkPreset('Time to hydrate! Drink a glass of fresh water 💧')">💧 Drink 1 glass</span>
+            <span class="remark-chip" onclick="applyRemarkPreset('Midday recharge! Water boosts focus & energy ⚡')">⚡ Energy boost</span>
+            <span class="remark-chip" onclick="applyRemarkPreset('Flush toxins and nourish your muscles! 🌿')">🌿 Detox & muscles</span>
+            <span class="remark-chip" onclick="applyRemarkPreset('Cool down and take a refreshing sip! 🧊')">🧊 Refresh & reset</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Add Presets -->
+    <h3 style="font-size:1.05rem;margin:1.75rem 0 .75rem">⚡ Quick Add Water</h3>
+    <div class="quick-add-grid">
+      <div class="quick-add-btn" onclick="addWater(250)">
+        <div style="font-size:1.6rem">🥛</div>
+        <div style="font-weight:700;margin-top:.3rem">+250 ml</div>
+        <div style="font-size:.75rem;color:var(--text-muted)">Small Glass</div>
+      </div>
+      <div class="quick-add-btn" onclick="addWater(500)">
+        <div style="font-size:1.6rem">🍾</div>
+        <div style="font-weight:700;margin-top:.3rem">+500 ml</div>
+        <div style="font-size:.75rem;color:var(--text-muted)">Water Bottle</div>
+      </div>
+      <div class="quick-add-btn" onclick="addWater(750)">
+        <div style="font-size:1.6rem">🍶</div>
+        <div style="font-weight:700;margin-top:.3rem">+750 ml</div>
+        <div style="font-size:.75rem;color:var(--text-muted)">Large Flask</div>
+      </div>
+      <div class="quick-add-btn" onclick="addWater(1000)">
+        <div style="font-size:1.6rem">🧊</div>
+        <div style="font-weight:700;margin-top:.3rem">+1,000 ml</div>
+        <div style="font-size:.75rem;color:var(--text-muted)">1L Pitcher</div>
+      </div>
+    </div>
+
+    <!-- Custom Water Logging Form -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <div class="card-header"><span class="card-title">✏️ Custom Water Entry</span></div>
+      <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+        <input class="form-control" type="number" id="customMl" placeholder="Amount in ml (e.g. 350)" style="max-width:200px" min="50" max="3000"/>
+        <input class="form-control" type="text" id="waterNotes" placeholder="Notes (optional e.g. post-gym)" style="flex:1"/>
+        <button class="btn btn-primary" onclick="submitCustomWater()">+ Log Water</button>
+      </div>
+    </div>
+
+    <!-- Intake History Log -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">📜 Today's Intake Log</span></div>
+      <div id="waterLogList"><div class="spinner"></div></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Modal: Customize Daily Water Goal -->
+<div id="waterGoalModal" class="app-modal-backdrop">
+  <div class="app-modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title"><span>🎯</span> Customize Daily Hydration Goal</div>
+      <button class="modal-close-btn" onclick="closeGoalModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:1rem">
+        Set a customized daily water target tailored to your lifestyle, body weight, and workout routine.
+      </p>
+
+      <!-- Target Input & Stepper -->
+      <div class="form-group">
+        <label>Target Daily Intake (ml)</label>
+        <div style="display:flex;gap:.5rem;align-items:center">
+          <button type="button" class="btn btn-secondary" onclick="adjustGoalInput(-250)" style="font-weight:700">−250</button>
+          <input class="form-control" type="number" id="customGoalInput" step="50" min="500" max="250000" style="text-align:center;font-size:1.2rem;font-weight:700;font-family:'Outfit',sans-serif"/>
+          <button type="button" class="btn btn-secondary" onclick="adjustGoalInput(250)" style="font-weight:700">+250</button>
+        </div>
+      </div>
+
+      <!-- Quick Preset Cards -->
+      <label style="font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);display:block;margin-top:1rem">
+        Recommended Hydration Presets
+      </label>
+      <div class="goal-presets-grid">
+        <div class="goal-preset-card" onclick="selectPresetGoal(2500)">
+          <div style="font-size:1.3rem">💧</div>
+          <div style="font-weight:700;font-size:.9rem;margin-top:.2rem">2,500 ml</div>
+          <div style="font-size:.72rem;color:var(--text-muted)">Standard Healthy</div>
+        </div>
+        <div class="goal-preset-card" onclick="selectPresetGoal(3500)">
+          <div style="font-size:1.3rem">🏋️</div>
+          <div style="font-weight:700;font-size:.9rem;margin-top:.2rem">3,500 ml</div>
+          <div style="font-size:.72rem;color:var(--text-muted)">Active Fitness</div>
+        </div>
+        <div class="goal-preset-card" onclick="selectPresetGoal(100000)">
+          <div style="font-size:1.3rem">🌊</div>
+          <div style="font-weight:700;font-size:.9rem;margin-top:.2rem">100,000 ml</div>
+          <div style="font-size:.72rem;color:var(--blue)">400 Glasses</div>
+        </div>
+      </div>
+
+      <!-- Auto Calculator Callout -->
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:.85rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem">
+        <div>
+          <div style="font-size:.82rem;font-weight:700" id="weightCalcHeadline">Auto-Calculate from Body Weight</div>
+          <div style="font-size:.75rem;color:var(--text-muted)" id="weightCalcSub">~35 ml per kg of body weight</div>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="applyCalculatedGoal()" style="white-space:nowrap;font-size:.78rem">
+          ⚡ Apply
+        </button>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeGoalModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCustomGoal()">Save Goal</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="js/api.js"></script>
+<script>
+let currentUser = null;
+let currentWaterGoal = 100000;
+let todayTotalLogged = 0;
+
+async function loadWaterPage() {
+  try {
+    currentUser = await Auth.me();
+    const userWeight = (currentUser && currentUser.weightKg) || 70;
+
+    // Load custom goal from storage or user profile
+    currentWaterGoal = await Track.getWaterGoal();
+    document.getElementById('targetGoalMl').textContent = currentWaterGoal.toLocaleString();
+
+    // Auto-calc headline in modal
+    const recMl = Math.round(userWeight * 35);
+    const hl = document.getElementById('weightCalcHeadline');
+    if (hl) hl.textContent = `Auto-Calculate (${userWeight}kg × 35ml = ${recMl}ml)`;
+
+    const data = await Track.getWaterToday();
+    todayTotalLogged = data.totalMl || 0;
+    renderWaterState(todayTotalLogged, currentWaterGoal, data.logs || []);
+
+    // Setup Alarm Controls
+    initAlarmUI();
+    setupGlobalUserSidebar();
+  } catch(e) { 
+    showToast('Error loading water log: ' + e.message, 'error'); 
+  }
+}
+
+function renderWaterState(totalMl, targetMl, logs) {
+  document.getElementById('todayTotalMl').textContent = totalMl.toLocaleString() + ' ml';
+  document.getElementById('targetGoalMl').textContent = targetMl.toLocaleString();
+
+  const remaining = Math.max(0, targetMl - totalMl);
+  const badge = document.getElementById('remainingBadge');
+  if (badge) {
+    if (remaining === 0) {
+      badge.textContent = '🎉 Goal Achieved!';
+      badge.style.background = 'rgba(76,139,74,.2)';
+      badge.style.color = 'var(--ac-green)';
+    } else {
+      badge.textContent = `${remaining.toLocaleString()} ml left`;
+      badge.style.background = 'rgba(85,136,221,.15)';
+      badge.style.color = 'var(--blue)';
+    }
+  }
+
+  const pct = Math.min((totalMl / targetMl) * 100, 100);
+  document.getElementById('waterFill').style.width = pct.toFixed(1) + '%';
+
+  const container = document.getElementById('waterLogList');
+  if (!logs || logs.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-muted);padding:1.5rem;text-align:center">No water intake logged yet today.</p>';
+    return;
+  }
+  container.innerHTML = logs.map(l => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 0;border-bottom:1px solid var(--border)">
+      <div>
+        <span style="font-weight:700;font-size:1.05rem;color:var(--blue)">💧 +${l.amountMl} ml</span>
+        ${l.notes ? `<span style="font-size:.82rem;color:var(--text-muted);margin-left:.6rem">— ${l.notes}</span>` : ''}
+      </div>
+      <div style="display:flex;align-items:center;gap:1rem">
+        <span style="font-size:.78rem;color:var(--text-dim)">${l.logTime || 'Today'}</span>
+        <button class="btn btn-secondary btn-sm" style="color:var(--red);border-color:rgba(224,85,85,.3);padding:.2rem .5rem;font-size:.75rem" onclick="deleteWaterEntry(${l.logId})">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+/* ── Goal Customization Modal ── */
+function openGoalModal() {
+  document.getElementById('customGoalInput').value = currentWaterGoal;
+  highlightActiveGoalPreset(currentWaterGoal);
+  document.getElementById('waterGoalModal').classList.add('active');
+}
+
+function closeGoalModal() {
+  document.getElementById('waterGoalModal').classList.remove('active');
+}
+
+function adjustGoalInput(delta) {
+  const input = document.getElementById('customGoalInput');
+  let val = (parseInt(input.value) || 100000) + delta;
+  val = Math.max(500, Math.min(250000, val));
+  input.value = val;
+  highlightActiveGoalPreset(val);
+}
+
+function selectPresetGoal(amount) {
+  document.getElementById('customGoalInput').value = amount;
+  highlightActiveGoalPreset(amount);
+}
+
+function highlightActiveGoalPreset(val) {
+  document.querySelectorAll('.goal-preset-card').forEach(c => {
+    const txt = c.querySelector('div:nth-child(2)').textContent;
+    const num = parseInt(txt.replace(/\D/g, ''));
+    if (num === val) c.classList.add('active');
+    else c.classList.remove('active');
+  });
+}
+
+function applyCalculatedGoal() {
+  const w = (currentUser && currentUser.weightKg) || 70;
+  const rec = Math.round(w * 35);
+  document.getElementById('customGoalInput').value = rec;
+  highlightActiveGoalPreset(rec);
+  showToast(`Auto-calculated ${rec}ml based on ${w}kg body weight`, 'info');
+}
+
+async function saveCustomGoal() {
+  const val = parseInt(document.getElementById('customGoalInput').value);
+  if (!val || val < 500 || val > 250000) {
+    showToast('Please enter a goal between 500 ml and 250,000 ml', 'error');
+    return;
+  }
+  try {
+    currentWaterGoal = val;
+    await Track.setWaterGoal(val);
+    closeGoalModal();
+    showToast(`Daily water target updated to ${val.toLocaleString()} ml! 🎯`, 'success');
+    loadWaterPage();
+  } catch(e) {
+    showToast('Error saving goal: ' + e.message, 'error');
+  }
+}
+
+/* ── Water Logging ── */
+async function addWater(amount) {
+  try {
+    await Track.logWater(amount, 'Quick add');
+    showToast(`Logged ${amount} ml water! 💧`, 'success');
+    loadWaterPage();
+  } catch(e) { 
+    showToast(e.message, 'error'); 
+  }
+}
+
+async function submitCustomWater() {
+  const amount = parseInt(document.getElementById('customMl').value);
+  const notes = document.getElementById('waterNotes').value.trim();
+  if (!amount || amount <= 0) { showToast('Please enter a valid water amount in ml', 'error'); return; }
+  try {
+    await Track.logWater(amount, notes);
+    showToast(`Logged ${amount} ml water! 💧`, 'success');
+    document.getElementById('customMl').value = '';
+    document.getElementById('waterNotes').value = '';
+    loadWaterPage();
+  } catch(e) { 
+    showToast(e.message, 'error'); 
+  }
+}
+
+async function deleteWaterEntry(logId) {
+  try {
+    await Track.deleteWater(logId);
+    showToast('Water log deleted', 'info');
+    loadWaterPage();
+  } catch(e) {
+    showToast(e.message, 'error');
+  }
+}
+
+/* ── Hydration Alarm & Reminders Management ── */
+let countdownTimerId = null;
+
+function initAlarmUI() {
+  const cfg = WaterAlarm.getConfig();
+  const toggle = document.getElementById('alarmToggle');
+  if (toggle) toggle.checked = !!cfg.enabled;
+
+  const remarkInput = document.getElementById('alarmRemarkInput');
+  if (remarkInput) remarkInput.value = cfg.remark || "Time to hydrate! Drink a fresh glass of water 💧";
+
+  const soundCb = document.getElementById('alarmSoundCb');
+  if (soundCb) soundCb.checked = cfg.sound !== false;
+
+  const notifyCb = document.getElementById('alarmNotifyCb');
+  if (notifyCb) notifyCb.checked = cfg.notify !== false;
+
+  // Highlight interval button
+  highlightActiveIntervalBtn(cfg.intervalMins || 60);
+
+  updateAlarmStatusDisplay(cfg);
+  startCountdownUI();
+}
+
+function updateAlarmStatusDisplay(cfg) {
+  const pill = document.getElementById('alarmStatusPill');
+  const label = document.getElementById('alarmStatusLabel');
+  if (!pill || !label) return;
+
+  if (cfg.enabled) {
+    pill.className = 'alarm-status-pill active';
+    label.textContent = `Alarm Active (Every ${cfg.intervalMins}m)`;
+  } else {
+    pill.className = 'alarm-status-pill';
+    label.textContent = 'Alarm Paused';
+  }
+}
+
+function toggleAlarmSwitch(enabled) {
+  const cfg = WaterAlarm.getConfig();
+  cfg.enabled = enabled;
+  if (enabled) {
+    cfg.nextAlarmTimestamp = Date.now() + (cfg.intervalMins * 60 * 1000);
+    showToast(`Hydration Alarm turned ON! Reminding every ${cfg.intervalMins} mins 💧`, 'success');
+    // If notifications enabled, check permission
+    if (cfg.notify) WaterAlarm.requestNotificationPermission();
+  } else {
+    cfg.nextAlarmTimestamp = null;
+    showToast('Hydration Alarm paused.', 'info');
+  }
+  WaterAlarm.saveConfig(cfg);
+  updateAlarmStatusDisplay(cfg);
+}
+
+function selectInterval(mins, btnEl) {
+  const cfg = WaterAlarm.getConfig();
+  cfg.intervalMins = mins;
+  if (cfg.enabled) {
+    cfg.nextAlarmTimestamp = Date.now() + (mins * 60 * 1000);
+  }
+  WaterAlarm.saveConfig(cfg);
+  highlightActiveIntervalBtn(mins);
+  updateAlarmStatusDisplay(cfg);
+  showToast(`Reminder interval set to ${mins} minutes! ⏱️`, 'info');
+}
+
+function highlightActiveIntervalBtn(mins) {
+  document.querySelectorAll('.alarm-freq-btn').forEach(btn => {
+    const text = btn.textContent;
+    const btnMins = text.includes('Hour') ? (text.includes('1.5') ? 90 : (text.includes('2') ? 120 : (text.includes('3') ? 180 : 60))) : parseInt(text);
+    if (btnMins === mins) btn.classList.add('active');
+    else btn.classList.remove('active');
+  });
+}
+
+function updateAlarmRemark(val) {
+  const cfg = WaterAlarm.getConfig();
+  cfg.remark = val.trim() || "Time to hydrate! Drink a fresh glass of water 💧";
+  WaterAlarm.saveConfig(cfg);
+  showToast('Reminder remark updated! ✍️', 'info');
+}
+
+function applyRemarkPreset(text) {
+  const input = document.getElementById('alarmRemarkInput');
+  if (input) input.value = text;
+  updateAlarmRemark(text);
+}
+
+function updateAlarmOptions() {
+  const cfg = WaterAlarm.getConfig();
+  cfg.sound = document.getElementById('alarmSoundCb').checked;
+  cfg.notify = document.getElementById('alarmNotifyCb').checked;
+  if (cfg.notify) {
+    WaterAlarm.requestNotificationPermission();
+  }
+  WaterAlarm.saveConfig(cfg);
+}
+
+function testAlarmNow() {
+  const remark = document.getElementById('alarmRemarkInput').value || "Time to hydrate! Drink a fresh glass of water 💧";
+  WaterAlarm.triggerAlert(remark);
+}
+
+function startCountdownUI() {
+  if (countdownTimerId) clearInterval(countdownTimerId);
+  countdownTimerId = setInterval(() => {
+    const cfg = WaterAlarm.getConfig();
+    const el = document.getElementById('waterAlarmCountdown');
+    if (!el) return;
+
+    if (!cfg.enabled || !cfg.nextAlarmTimestamp) {
+      el.textContent = '--:--';
+      return;
+    }
+
+    const diff = cfg.nextAlarmTimestamp - Date.now();
+    if (diff <= 0) {
+      el.textContent = '00:00';
+      return;
+    }
+
+    const totalSeconds = Math.floor(diff / 1000);
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    const str = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    el.textContent = str;
+  }, 1000);
+}
+
+// React to global events
+window.addEventListener('nutri_water_logged', () => {
+  loadWaterPage();
+});
+window.addEventListener('nutri_water_alarm_changed', (e) => {
+  initAlarmUI();
+});
+
+async function logoutUser() {
+  try { await Auth.logout(); } catch {}
+  localStorage.removeItem('currentUser');
+  window.location.href = 'login.html';
+}
+
+loadWaterPage();
+</script>
+</body>
+</html>

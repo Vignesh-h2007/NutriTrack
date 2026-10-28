@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Weight Tracker — NutriTrack</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .app-layout { display:grid; grid-template-columns:220px 1fr; min-height:100vh; }
+    .app-sidebar { background:var(--bg2); border-right:1px solid var(--border); padding:1.25rem .75rem; display:flex; flex-direction:column; position:sticky; top:0; height:100vh; overflow-y:auto; }
+    .s-logo { display:flex; align-items:center; gap:.6rem; margin-bottom:2rem; padding:.25rem .5rem; }
+    .s-logo .s-icon { width:36px; height:36px; background:linear-gradient(135deg,var(--ac-green),var(--dk-green)); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+    .s-logo span { font-family:'Outfit',sans-serif; font-weight:800; font-size:1.1rem; }
+    .nav-section { margin-bottom:1.25rem; }
+    .nav-section-label { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--text-dim); padding:0 .6rem; margin-bottom:.4rem; }
+    .nav-item { display:flex; align-items:center; gap:.65rem; padding:.55rem .7rem; border-radius:10px; color:var(--text-muted); font-size:.875rem; font-weight:500; transition:all .2s; margin-bottom:2px; cursor:pointer; text-decoration:none; }
+    .nav-item:hover { background:var(--card); color:var(--text); }
+    .nav-item.active { background:rgba(76,139,74,.15); color:var(--ac-green); }
+    .nav-item .ni { font-size:1rem; width:18px; text-align:center; }
+    .sidebar-bottom { margin-top:auto; border-top:1px solid var(--border); padding-top:.75rem; }
+    .user-pill { display:flex; align-items:center; gap:.65rem; padding:.6rem .7rem; border-radius:12px; cursor:pointer; transition:background .2s; }
+    .user-pill:hover { background:var(--card); }
+    .user-avatar { width:36px; height:36px; min-width:36px; min-height:36px; max-width:36px; max-height:36px; border-radius:50%; background:var(--dk-green); display:flex; align-items:center; justify-content:center; font-size:.95rem; font-weight:700; color:var(--ac-green); overflow:hidden; flex-shrink:0; border:2px solid rgba(76,139,74,.4); }
+    .user-avatar img { width:100% !important; height:100% !important; max-width:100% !important; max-height:100% !important; border-radius:50% !important; object-fit:cover !important; display:block !important; aspect-ratio:1/1; }
+    .user-info { flex:1; min-width:0; overflow:hidden; }
+    .user-name { font-size:.85rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .user-goal { font-size:.72rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+    .app-main { padding:1.75rem; overflow-y:auto; }
+    .page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; }
+
+    .weight-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:1.25rem; margin-bottom:1.5rem; }
+    .wcard { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1.25rem; text-align:center; }
+    .wcard-val { font-family:'Outfit',sans-serif; font-size:2.5rem; font-weight:800; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <!-- Sidebar -->
+  <aside class="app-sidebar">
+    <div class="s-logo"><div class="s-icon">🥗</div><span>NutriTrack</span></div>
+    <div class="nav-section">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="ni">🏠</span> Dashboard</a>
+      <a href="food.html" class="nav-item"><span class="ni">🥗</span> Food & Meals</a>
+      <a href="workout.html" class="nav-item"><span class="ni">💪</span> Workouts</a>
+      <a href="water.html" class="nav-item"><span class="ni">💧</span> Water Tracker</a>
+      <a href="weight.html" class="nav-item active"><span class="ni">⚖️</span> Weight</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Insights & System</div>
+      <a href="reports.html" class="nav-item"><span class="ni">📊</span> Reports</a>
+      <a href="profile.html" class="nav-item"><span class="ni">👤</span> Profile</a>
+      <a href="settings.html" class="nav-item"><span class="ni">⚙️</span> Settings</a>
+      <a href="about.html" class="nav-item"><span class="ni">ℹ️</span> About Project</a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="user-pill" onclick="window.location.href='profile.html'">
+        <div class="user-avatar" id="sideAvatar">U</div>
+        <div class="user-info">
+          <div class="user-name" id="sideUserName">Loading…</div>
+          <div class="user-goal" id="sideGoal">—</div>
+        </div>
+      </div>
+      <div class="nav-item" style="margin-top:.25rem;color:var(--red)" onclick="logoutUser()">
+        <span class="ni">🚪</span> Log Out
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="app-main">
+    <div class="page-header">
+      <div>
+        <h1>Weight Progress</h1>
+        <p style="color:var(--text-muted);font-size:.875rem">Track body weight changes over time against your target goal.</p>
+      </div>
+    </div>
+
+    <!-- Weight Stats cards -->
+    <div class="weight-stats">
+      <div class="wcard">
+        <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:.25rem">Current Weight</div>
+        <div class="wcard-val" id="currWeight">—</div>
+        <div style="font-size:.78rem;color:var(--ac-green)">kg</div>
+      </div>
+      <div class="wcard">
+        <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:.25rem">Body Mass Index (BMI)</div>
+        <div class="wcard-val" id="bmiVal" style="color:var(--gold)">—</div>
+        <div style="font-size:.78rem" id="bmiCategory">—</div>
+      </div>
+      <div class="wcard">
+        <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:.25rem">Total Weight Change</div>
+        <div class="wcard-val" id="weightDiff">—</div>
+        <div style="font-size:.78rem;color:var(--text-dim)">kg from start</div>
+      </div>
+    </div>
+
+    <!-- Log Weight Form Card -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <div class="card-header"><span class="card-title">⚖️ Log Weight Entry</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1.5fr auto;gap:1rem;align-items:flex-end">
+        <div>
+          <label style="font-size:.8rem">Weight (kg) *</label>
+          <input class="form-control" type="number" step="0.1" id="logWeightKg" placeholder="70.5"/>
+        </div>
+        <div>
+          <label style="font-size:.8rem">Date</label>
+          <input class="form-control" type="date" id="logWeightDate"/>
+        </div>
+        <div>
+          <label style="font-size:.8rem">Notes (Optional)</label>
+          <input class="form-control" type="text" id="logWeightNotes" placeholder="e.g. Morning weighing"/>
+        </div>
+        <button class="btn btn-primary" onclick="submitWeightLog()">Log Entry</button>
+      </div>
+    </div>
+
+    <!-- Weight Chart -->
+    <div class="card" style="margin-bottom:1.5rem">
+      <div class="card-header"><span class="card-title">📈 Weight Trend Chart</span></div>
+      <div style="position:relative;height:250px">
+        <canvas id="weightChart"></canvas>
+      </div>
+    </div>
+
+    <!-- History table -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">📜 Weight History</span></div>
+      <div id="weightHistoryList"><div class="spinner"></div></div>
+    </div>
+
+  </main>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="js/api.js"></script>
+<script>
+let chartInstance = null;
+let userData = null;
+
+document.getElementById('logWeightDate').value = today();
+
+async function loadWeightPage() {
+  try {
+    userData = await Auth.me();
+    const userWeight = (userData && userData.weightKg) ? parseFloat(userData.weightKg) : null;
+    document.getElementById('currWeight').textContent = userWeight ? userWeight : '—';
+    
+    // Calculate BMI
+    if (userWeight && userData.heightCm) {
+      const bmi = await Track.getBMI(userWeight, userData.heightCm);
+      document.getElementById('bmiVal').textContent = bmi.bmi || '—';
+      document.getElementById('bmiCategory').textContent = bmi.category || '—';
+    }
+
+    // Get weight logs
+    let rawLogs = await Track.getWeightLogs();
+    if (!Array.isArray(rawLogs)) rawLogs = [];
+
+    // Map logs to normalize logDate and numeric weight
+    let logs = rawLogs.map(l => ({
+      ...l,
+      logDate: l.logDate || (l.recordedAt ? l.recordedAt.split('T')[0].split(' ')[0] : today()),
+      weightKg: parseFloat(l.weightKg) || userWeight || 70
+    }));
+
+    // If no weight history entries yet, start with the user's registered weight!
+    if (logs.length === 0 && userWeight) {
+      logs = [{ logId: 1, weightKg: userWeight, logDate: today(), notes: 'Starting weight from profile' }];
+    }
+
+    renderWeightData(logs);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function renderWeightData(logs) {
+  const container = document.getElementById('weightHistoryList');
+  if (!logs || logs.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-muted);padding:1.5rem;text-align:center">No weight entries logged yet.</p>';
+    renderChart([]);
+    return;
+  }
+
+  // Sort logs by date ascending for chart
+  const sorted = [...logs].sort((a,b) => new Date(a.logDate) - new Date(b.logDate));
+  
+  // Update current weight from latest entry
+  const latestWeight = sorted[sorted.length - 1].weightKg;
+  document.getElementById('currWeight').textContent = latestWeight;
+
+  if (sorted.length >= 2) {
+    const diff = (sorted[sorted.length-1].weightKg - sorted[0].weightKg).toFixed(1);
+    document.getElementById('weightDiff').textContent = (diff > 0 ? '+' : '') + diff;
+    document.getElementById('weightDiff').style.color = diff <= 0 ? 'var(--ac-green)' : 'var(--gold)';
+  } else {
+    document.getElementById('weightDiff').textContent = '0.0';
+    document.getElementById('weightDiff').style.color = 'var(--text-dim)';
+  }
+
+  renderChart(sorted);
+
+  // Table descending
+  container.innerHTML = [...sorted].reverse().map(l => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 0;border-bottom:1px solid var(--border)">
+      <div>
+        <span style="font-weight:700;font-size:1rem;color:var(--ac-green)">${l.weightKg} kg</span>
+        ${l.notes ? `<span style="font-size:.8rem;color:var(--text-muted);margin-left:.5rem">— ${l.notes}</span>` : ''}
+      </div>
+      <span style="font-size:.78rem;color:var(--text-dim)">${l.logDate}</span>
+    </div>`).join('');
+}
+
+function renderChart(logs) {
+  const ctx = document.getElementById('weightChart').getContext('2d');
+  if (chartInstance) chartInstance.destroy();
+  if (!logs || logs.length === 0) return;
+
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: logs.map(l => l.logDate),
+      datasets: [{
+        label: 'Weight (kg)',
+        data: logs.map(l => l.weightKg),
+        borderColor: '#4C8B4A',
+        backgroundColor: 'rgba(76, 139, 74, 0.1)',
+        fill: true,
+        tension: 0.3,
+        pointBackgroundColor: '#E5C200',
+        pointRadius: 5
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ` ${ctx.raw} kg`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888' } },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          ticks: { color: '#888' },
+          suggestedMin: Math.min(...logs.map(l => l.weightKg)) - 2,
+          suggestedMax: Math.max(...logs.map(l => l.weightKg)) + 2
+        }
+      }
+    }
+  });
+}
+
+async function submitWeightLog() {
+  const weightKg = parseFloat(document.getElementById('logWeightKg').value);
+  const logDate = document.getElementById('logWeightDate').value || today();
+  const notes = document.getElementById('logWeightNotes').value.trim();
+
+  if (!weightKg || weightKg <= 0) { showToast('Enter valid weight in kg', 'error'); return; }
+  try {
+    await Track.logWeight(weightKg, logDate, notes);
+    showToast('Weight logged successfully! ⚖️', 'success');
+    document.getElementById('logWeightKg').value = '';
+    loadWeightPage();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function logoutUser() {
+  try { await Auth.logout(); } catch {}
+  localStorage.removeItem('currentUser');
+  window.location.href = 'login.html';
+}
+
+loadWeightPage();
+</script>
+</body>
+</html>

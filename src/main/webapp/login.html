@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login — NutriTrack</title>
+  <meta name="description" content="Sign in to your NutriTrack account to access your personalized nutrition dashboard."/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    body { display:flex; align-items:center; justify-content:center; min-height:100vh;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(76,139,74,0.15) 0%, transparent 70%); }
+    .auth-wrap { width:100%; max-width:440px; padding:1.5rem; }
+    .auth-logo { text-align:center; margin-bottom:2rem; }
+    .auth-logo .logo-icon { width:60px; height:60px; background:linear-gradient(135deg,var(--ac-green),var(--dk-green));
+      border-radius:18px; display:inline-flex; align-items:center; justify-content:center; font-size:1.8rem; margin-bottom:.75rem; }
+    .auth-logo h2 { margin-bottom:.25rem; }
+    .auth-logo p { font-size:.9rem; }
+    .auth-card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:2rem; }
+    .divider { display:flex; align-items:center; gap:1rem; margin:1.25rem 0; color:var(--text-dim); font-size:.8rem; }
+    .divider::before,.divider::after { content:''; flex:1; height:1px; background:var(--border); }
+    .auth-footer { text-align:center; margin-top:1.25rem; font-size:.9rem; color:var(--text-muted); }
+    .back-btn { display:inline-flex; align-items:center; gap:.4rem; color:var(--text-muted); font-size:.85rem; margin-bottom:1.5rem; transition:color .2s; }
+    .back-btn:hover { color:var(--text); }
+    .password-group { position:relative; }
+    .pwd-toggle { position:absolute; right:.75rem; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.1rem; }
+    #loginBtn { width:100%; margin-top:.5rem; justify-content:center; padding:.8rem; font-size:1rem; }
+    #loginBtn .btn-spinner { width:18px; height:18px; border:2px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin .6s linear infinite; display:none; }
+    .demo-hint { background:rgba(76,139,74,.1); border:1px solid rgba(76,139,74,.2); border-radius:10px; padding:.75rem 1rem; font-size:.82rem; color:var(--text-muted); margin-bottom:1rem; }
+  </style>
+</head>
+<body>
+<div class="auth-wrap">
+  <a href="index.html" class="back-btn">← Back to Home</a>
+  <div class="auth-logo">
+    <div class="logo-icon">🥗</div>
+    <h2>Welcome Back</h2>
+    <p>Sign in to continue your nutrition journey</p>
+  </div>
+  <div class="auth-card">
+    <div class="demo-hint">🌿 <strong>Demo:</strong> Use email <code>demo@nutritrack.com</code> and password <code>demo123</code></div>
+    <div id="error-alert" class="alert alert-error" style="display:none"></div>
+    <form id="loginForm" novalidate>
+      <div class="form-group">
+        <label class="form-label" for="email">Email Address</label>
+        <input class="form-control" type="email" id="email" placeholder="you@example.com" autocomplete="email" required/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <div class="password-group">
+          <input class="form-control" type="password" id="password" placeholder="••••••••" autocomplete="current-password" required/>
+          <button type="button" class="pwd-toggle" id="togglePwd" aria-label="Toggle password">👁️</button>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" id="loginBtn">
+        <div class="btn-spinner" id="btnSpinner"></div>
+        <span id="btnText">Sign In →</span>
+      </button>
+    </form>
+    <div class="divider">or</div>
+    <div class="auth-footer">
+      Don't have an account? <a href="register.html">Create one free</a>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+(async () => {
+  // Already logged in?
+  try {
+    const u = await Auth.me();
+    if (u && u.userId) {
+      window.location.href = 'dashboard.html';
+      return;
+    }
+  } catch {}
+
+  const form        = document.getElementById('loginForm');
+  const emailEl     = document.getElementById('email');
+  const passwordEl  = document.getElementById('password');
+  const togglePwd   = document.getElementById('togglePwd');
+  const btnText     = document.getElementById('btnText');
+  const btnSpinner  = document.getElementById('btnSpinner');
+  const errorAlert  = document.getElementById('error-alert');
+
+  togglePwd.addEventListener('click', () => {
+    passwordEl.type = passwordEl.type === 'password' ? 'text' : 'password';
+    togglePwd.textContent = passwordEl.type === 'password' ? '👁️' : '🔒';
+  });
+
+  function setLoading(v) {
+    btnSpinner.style.display = v ? 'block' : 'none';
+    btnText.textContent = v ? 'Signing In…' : 'Sign In →';
+    document.getElementById('loginBtn').disabled = v;
+  }
+
+  function showError(msg) {
+    errorAlert.style.display = 'flex';
+    errorAlert.innerHTML = '⚠️ ' + msg;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorAlert.style.display = 'none';
+    const email = emailEl.value.trim();
+    const pwd   = passwordEl.value;
+    if (!email || !pwd) { showError('Please fill all fields.'); return; }
+    setLoading(true);
+    try {
+      await Auth.login(email, pwd);
+      window.location.href = 'dashboard.html';
+    } catch(err) {
+      showError(err.message);
+      setLoading(false);
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Settings — NutriTrack</title>
+  <meta name="description" content="Personalized Nutrition Management System — Preferences, Theme Customization, Reminders, and Health Calculation Settings."/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    .app-layout { display:grid; grid-template-columns:220px 1fr; min-height:100vh; }
+    .app-sidebar { background:var(--bg2); border-right:1px solid var(--border); padding:1.25rem .75rem; display:flex; flex-direction:column; position:sticky; top:0; height:100vh; overflow-y:auto; z-index:50; width:220px; box-sizing:border-box; }
+    .s-logo { display:flex; align-items:center; gap:.6rem; margin-bottom:2rem; padding:.25rem .5rem; text-decoration:none; color:var(--text); }
+    .s-logo .s-icon { width:36px; height:36px; background:linear-gradient(135deg,var(--ac-green),var(--dk-green)); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+    .s-logo span { font-family:'Outfit',sans-serif; font-weight:800; font-size:1.1rem; }
+    .nav-section { margin-bottom:1.25rem; }
+    .nav-section-label { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--text-dim); padding:0 .6rem; margin-bottom:.4rem; }
+    .nav-item { display:flex; align-items:center; gap:.65rem; padding:.55rem .7rem; border-radius:10px; color:var(--text-muted); font-size:.875rem; font-weight:500; transition:all .2s; margin-bottom:2px; cursor:pointer; text-decoration:none; }
+    .nav-item:hover { background:var(--card); color:var(--text); }
+    .nav-item.active { background:rgba(76,139,74,.18); color:var(--ac-green); font-weight:600; }
+    .nav-item .ni { font-size:1rem; width:18px; text-align:center; }
+    .sidebar-bottom { margin-top:auto; border-top:1px solid var(--border); padding-top:.75rem; }
+    .app-main { padding:1.75rem; overflow-y:auto; min-width:0; }
+    @media(max-width:768px) { .app-layout { grid-template-columns:1fr; } .app-sidebar { position:relative; height:auto; width:100%; } }
+
+    /* Scoped Settings Specific Styling */
+    .settings-tab-bar {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+    }
+    .settings-tab-btn {
+      padding: 0.75rem 1.25rem;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .settings-tab-btn:hover {
+      color: var(--text);
+    }
+    .settings-tab-btn.active {
+      color: var(--ac-green);
+      border-bottom-color: var(--ac-green);
+    }
+    .settings-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .settings-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .settings-card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    /* Toggle Switch */
+    .switch-wrap {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+    .switch-wrap input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .switch-slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: var(--bg3);
+      border: 1px solid var(--border);
+      transition: 0.25s;
+      border-radius: 34px;
+    }
+    .switch-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: var(--text-muted);
+      transition: 0.25s;
+      border-radius: 50%;
+    }
+    .switch-wrap input:checked + .switch-slider {
+      background-color: var(--ac-green);
+      border-color: var(--ac-green);
+    }
+    .switch-wrap input:checked + .switch-slider:before {
+      transform: translateX(22px);
+      background-color: #fff;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    @media (max-width: 700px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- Unified Sidebar -->
+  <aside class="app-sidebar">
+    <a href="dashboard.html" class="s-logo">
+      <div class="s-icon">🥗</div>
+      <span>NutriTrack</span>
+    </a>
+    <div class="nav-section">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="ni">🏠</span> Dashboard</a>
+      <a href="food.html" class="nav-item"><span class="ni">🥗</span> Food & Meals</a>
+      <a href="workout.html" class="nav-item"><span class="ni">💪</span> Workouts</a>
+      <a href="water.html" class="nav-item"><span class="ni">💧</span> Water Tracker</a>
+      <a href="weight.html" class="nav-item"><span class="ni">⚖️</span> Weight</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Insights & System</div>
+      <a href="reports.html" class="nav-item"><span class="ni">📊</span> Reports</a>
+      <a href="profile.html" class="nav-item"><span class="ni">👤</span> Profile</a>
+      <a href="settings.html" class="nav-item active"><span class="ni">⚙️</span> Settings</a>
+      <a href="about.html" class="nav-item"><span class="ni">ℹ️</span> About Project</a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="user-pill" onclick="window.location.href='profile.html'">
+        <div class="user-avatar" id="sideAvatar">U</div>
+        <div class="user-info">
+          <div class="user-name" id="sideUserName">Loading…</div>
+          <div class="user-goal" id="sideGoal">—</div>
+        </div>
+      </div>
+      <div class="nav-item" style="margin-top:.25rem;color:var(--red)" onclick="logoutUser()">
+        <span class="ni">🚪</span> Log Out
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="app-main">
+
+    <!-- Header -->
+    <div class="page-header" style="margin-bottom:1.25rem">
+      <div>
+        <h1 style="font-size:1.75rem;margin-bottom:0.25rem">System & Application Settings</h1>
+        <p style="color:var(--text-muted);font-size:0.88rem">Personalize your UI theme, hydration reminders, calculation algorithms, and system data.</p>
+      </div>
+      <button class="btn btn-primary" onclick="saveAllSettings()">💾 Save Preferences</button>
+    </div>
+
+    <!-- Quick Navigation Tabs -->
+    <div class="settings-tab-bar">
+      <button class="settings-tab-btn active" onclick="switchSettingsTab('appearance', this)">🎨 Appearance & Theme</button>
+      <button class="settings-tab-btn" onclick="switchSettingsTab('notifications', this)">💧 Reminders & Alarms</button>
+      <button class="settings-tab-btn" onclick="switchSettingsTab('calculations', this)">🧮 Units & BMR Formula</button>
+      <button class="settings-tab-btn" onclick="switchSettingsTab('data', this)">📦 Data Backup & Privacy</button>
+    </div>
+
+    <!-- TAB 1: Appearance & Theme -->
+    <div id="tab-appearance" class="settings-tab-content">
+      <div class="settings-grid">
+
+        <!-- Theme Selection Card -->
+        <div class="settings-card">
+          <div class="settings-card-head">
+            <div class="settings-card-title"><span>🎨</span> UI Theme Preset</div>
+            <span class="badge" style="background:rgba(76,139,74,0.15);color:var(--ac-green);padding:0.2rem 0.5rem;font-size:0.75rem">Live Preview</span>
+          </div>
+          <p style="font-size:0.83rem;color:var(--text-muted);margin-bottom:0.75rem">
+            Select your preferred display aesthetic. Changes adapt immediately across all application screens.
+          </p>
+          <div class="theme-pick-grid">
+            <button type="button" class="theme-option-btn active" data-theme="dark" onclick="selectTheme('dark')">
+              🌙 Dark Night
+            </button>
+            <button type="button" class="theme-option-btn" data-theme="amoled" onclick="selectTheme('amoled')">
+              🖤 AMOLED Pitch
+            </button>
+            <button type="button" class="theme-option-btn" data-theme="cyber" onclick="selectTheme('cyber')">
+              ⚡ Cyber Neon
+            </button>
+            <button type="button" class="theme-option-btn" data-theme="emerald" onclick="selectTheme('emerald')">
+              🌿 Emerald Forest
+            </button>
+            <button type="button" class="theme-option-btn" data-theme="light" onclick="selectTheme('light')">
+              ☀️ Crisp Light
+            </button>
+          </div>
+
+          <div style="margin-top:1.5rem">
+            <div class="setting-label-title">Accent Tint Palette</div>
+            <div class="setting-label-subtitle">Choose the signature glow color for buttons, progress rings, and badges.</div>
+            <div class="color-swatches">
+              <div class="color-swatch active" style="background:#4C8B4A" data-color="#4C8B4A" onclick="selectAccent('#4C8B4A')" title="Nutri Green (Default)"></div>
+              <div class="color-swatch" style="background:#00D2D3" data-color="#00D2D3" onclick="selectAccent('#00D2D3')" title="Cyan Glow"></div>
+              <div class="color-swatch" style="background:#E5C200" data-color="#E5C200" onclick="selectAccent('#E5C200')" title="Solar Gold"></div>
+              <div class="color-swatch" style="background:#9b59b6" data-color="#9b59b6" onclick="selectAccent('#9b59b6')" title="Electric Violet"></div>
+              <div class="color-swatch" style="background:#FF6B6B" data-color="#FF6B6B" onclick="selectAccent('#FF6B6B')" title="Sunset Coral"></div>
+              <div class="color-swatch" style="background:#5588DD" data-color="#5588DD" onclick="selectAccent('#5588DD')" title="Sapphire Ocean"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ambient FX Controls -->
+        <div class="settings-card">
+          <div class="settings-card-head">
+            <div class="settings-card-title"><span>✨</span> Background & Motion Effects</div>
+          </div>
+
+          <div class="setting-item-row">
+            <div>
+              <div class="setting-label-title">Live Aurora Background Animation</div>
+              <div class="setting-label-subtitle">Smooth flowing ambient aurora mesh in the backdrop.</div>
+            </div>
+            <label class="switch-wrap">
+              <input type="checkbox" id="setAuroraBg" checked onchange="onSettingToggle('auroraBg', this.checked)">
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item-row">
+            <div>
+              <div class="setting-label-title">Interactive Particle Canvas</div>
+              <div class="setting-label-subtitle">Floating interactive biometric nodes with mouse repulsion.</div>
+            </div>
+            <label class="switch-wrap">
+              <input type="checkbox" id="setParticles" checked onchange="onSettingToggle('particles', this.checked)">
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item-row">
+            <div>
+              <div class="setting-label-title">Privacy Blur Mode</div>
+              <div class="setting-label-subtitle">Blurs sensitive body weight & calorie metrics when sharing screen.</div>
+            </div>
+            <label class="switch-wrap">
+              <input type="checkbox" id="setPrivacyMode" onchange="onSettingToggle('privacyMode', this.checked)">
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 2: Reminders & Alarms -->
+    <div id="tab-notifications" class="settings-tab-content" style="display:none">
+      <div class="settings-card">
+        <div class="settings-card-head">
+          <div class="settings-card-title"><span>💧</span> Smart Hydration Reminders & Alarms</div>
+          <span class="badge" style="background:rgba(85,136,221,0.15);color:var(--blue);padding:0.2rem 0.6rem;font-size:0.75rem">Nutri-Hydrate Engine</span>
+        </div>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:1.25rem">
+          Keep your body functioning at peak metabolic efficiency. NutriTrack automatically tracks intervals and prompts you with audio chimes and system toasts.
+        </p>
+
+        <div class="setting-item-row">
+          <div>
+            <div class="setting-label-title">Enable Hydration Reminders</div>
+            <div class="setting-label-subtitle">Triggers reminder audio and alerts throughout your day.</div>
+          </div>
+          <label class="switch-wrap">
+            <input type="checkbox" id="setWaterAlarmEnabled" onchange="updateWaterAlarmLive()">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Reminder Frequency Interval</label>
+            <select class="form-control" id="setWaterInterval" onchange="updateWaterAlarmLive()">
+              <option value="30">Every 30 minutes (High Intensity / Summer)</option>
+              <option value="45">Every 45 minutes</option>
+              <option value="60" selected>Every 60 minutes (Recommended)</option>
+              <option value="90">Every 90 minutes</option>
+              <option value="120">Every 2 hours</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Sound Notification</label>
+            <div style="display:flex;gap:0.75rem;align-items:center;height:42px">
+              <label class="switch-wrap">
+                <input type="checkbox" id="setWaterSound" checked onchange="updateWaterAlarmLive()">
+                <span class="switch-slider"></span>
+              </label>
+              <span style="font-size:0.85rem;color:var(--text-muted)">Play gentle audio chime</span>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="testAudioChime()" style="margin-left:auto">🔊 Test Sound</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:1rem">
+          <label>Custom Reminder Quote / Remark</label>
+          <input type="text" class="form-control" id="setWaterRemark" placeholder="e.g. Time to hydrate! Drink a fresh glass of water 💧" oninput="updateWaterAlarmLive()">
+        </div>
+
+        <div style="margin-top:1.5rem;display:flex;gap:1rem;flex-wrap:wrap">
+          <div class="setting-item-row" style="flex:1;min-width:280px;border:1px solid var(--border);border-radius:12px;padding:0.75rem 1rem">
+            <div>
+              <div class="setting-label-title">Workout Daily Reminders</div>
+              <div class="setting-label-subtitle">Prompt to log daily training sessions.</div>
+            </div>
+            <label class="switch-wrap">
+              <input type="checkbox" id="setWorkoutReminders" checked onchange="onSettingToggle('workoutReminders', this.checked)">
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item-row" style="flex:1;min-width:280px;border:1px solid var(--border);border-radius:12px;padding:0.75rem 1rem">
+            <div>
+              <div class="setting-label-title">Meal Logging Reminders</div>
+              <div class="setting-label-subtitle">Notification alerts around typical meal hours.</div>
+            </div>
+            <label class="switch-wrap">
+              <input type="checkbox" id="setMealReminders" checked onchange="onSettingToggle('mealReminders', this.checked)">
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 3: Units & BMR Formula -->
+    <div id="tab-calculations" class="settings-tab-content" style="display:none">
+      <div class="settings-card">
+        <div class="settings-card-head">
+          <div class="settings-card-title"><span>🧮</span> Calculation Formulas & Unit Standards</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Measurement Unit Standard</label>
+            <select class="form-control" id="setUnits" onchange="onSettingToggle('units', this.value)">
+              <option value="metric">Metric (kg, cm, milliliters)</option>
+              <option value="imperial">Imperial (lbs, feet/inches, fluid ounces)</option>
+            </select>
+            <small style="color:var(--text-dim);font-size:0.75rem">Preferred display units for bodyweight, heights, and daily water volume.</small>
+          </div>
+
+          <div class="form-group">
+            <label>Basal Metabolic Rate (BMR) Formula</label>
+            <select class="form-control" id="setBmrFormula" onchange="onSettingToggle('bmrFormula', this.value)">
+              <option value="mifflin" selected>Mifflin-St Jeor (Modern Clinical Gold Standard)</option>
+              <option value="harris">Harris-Benedict (Original Classic Formula)</option>
+              <option value="katch">Katch-McArdle (Body Composition Adjusted)</option>
+            </select>
+            <small style="color:var(--text-dim);font-size:0.75rem">Used by the backend to compute resting calories burned.</small>
+          </div>
+        </div>
+
+        <div style="margin-top:1.5rem">
+          <div class="setting-label-title" style="margin-bottom:0.4rem">Target Macro Distribution Preset</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:0.75rem">
+            <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:0.9rem">
+              <div style="font-weight:700;color:var(--ac-green)">Balanced Standard</div>
+              <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.2rem">50% Carbs &bull; 25% Protein &bull; 25% Fats</div>
+            </div>
+            <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:0.9rem">
+              <div style="font-weight:700;color:var(--blue)">High Protein / Athletic</div>
+              <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.2rem">40% Carbs &bull; 35% Protein &bull; 25% Fats</div>
+            </div>
+            <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:0.9rem">
+              <div style="font-weight:700;color:var(--gold)">Low-Carb / Keto</div>
+              <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.2rem">15% Carbs &bull; 35% Protein &bull; 50% Fats</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 4: Data Backup & Privacy -->
+    <div id="tab-data" class="settings-tab-content" style="display:none">
+      <div class="settings-card">
+        <div class="settings-card-head">
+          <div class="settings-card-title"><span>📦</span> Application Data Management</div>
+        </div>
+
+        <p style="font-size:0.86rem;color:var(--text-muted);margin-bottom:1.5rem">
+          You retain complete ownership of your health records. Export your activity logs, profile configurations, and nutrition entries as a JSON backup at any time.
+        </p>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:1rem;margin-bottom:1.5rem">
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.25rem">
+            <div style="font-size:1.5rem;margin-bottom:0.5rem">📥</div>
+            <div style="font-weight:700;font-size:0.95rem;margin-bottom:0.3rem">Export Health Records</div>
+            <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem">Download your complete activity, weight history, and meal log file.</p>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="exportUserData()">Download JSON File</button>
+          </div>
+
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.25rem">
+            <div style="font-size:1.5rem;margin-bottom:0.5rem">📤</div>
+            <div style="font-weight:700;font-size:0.95rem;margin-bottom:0.3rem">Import Backup File</div>
+            <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem">Restore previously exported NutriTrack JSON backup data.</p>
+            <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="handleImportFile(event)">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('importFileInput').click()">Upload Backup</button>
+          </div>
+
+          <div style="background:var(--bg2);border:1px solid rgba(224,85,85,0.3);border-radius:14px;padding:1.25rem">
+            <div style="font-size:1.5rem;margin-bottom:0.5rem">🧹</div>
+            <div style="font-weight:700;font-size:0.95rem;color:var(--red);margin-bottom:0.3rem">Reset Local Cache</div>
+            <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem">Clears temporary client cache and refreshes settings to defaults.</p>
+            <button type="button" class="btn btn-secondary btn-sm" style="color:var(--red);border-color:rgba(224,85,85,0.5)" onclick="resetClientSettings()">Reset Settings</button>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid var(--border);padding-top:1.25rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem">
+          <div>
+            <div style="font-weight:700;font-size:0.9rem">Security & Account Credentials</div>
+            <div style="font-size:0.8rem;color:var(--text-muted)">Need to change your password or update your clinical parameters?</div>
+          </div>
+          <div style="display:flex;gap:0.75rem">
+            <a href="profile.html" class="btn btn-secondary btn-sm">Edit Health Profile</a>
+            <a href="about.html" class="btn btn-secondary btn-sm">View About Project</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  let currentSettings = {};
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    // Populate user profile info in sidebar
+    try {
+      const user = await Auth.me();
+      if (user) setupGlobalUserSidebar();
+    } catch(e) {}
+
+    // Load active settings
+    loadSettingsIntoUI();
+  });
+
+  function loadSettingsIntoUI() {
+    currentSettings = AppSettings.getSettings();
+
+    // Theme buttons
+    const theme = currentSettings.theme || 'dark';
+    document.querySelectorAll('.theme-option-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.theme === theme);
+    });
+
+    // Accent buttons
+    const accent = currentSettings.accent || '#4C8B4A';
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+      swatch.classList.toggle('active', swatch.dataset.color.toLowerCase() === accent.toLowerCase());
+    });
+
+    // Toggles
+    const elAurora = document.getElementById('setAuroraBg');
+    if (elAurora) elAurora.checked = currentSettings.auroraBg !== false;
+
+    const elParticles = document.getElementById('setParticles');
+    if (elParticles) elParticles.checked = currentSettings.particles !== false;
+
+    const elPrivacy = document.getElementById('setPrivacyMode');
+    if (elPrivacy) elPrivacy.checked = !!currentSettings.privacyMode;
+
+    const elWorkout = document.getElementById('setWorkoutReminders');
+    if (elWorkout) elWorkout.checked = currentSettings.workoutReminders !== false;
+
+    const elMeal = document.getElementById('setMealReminders');
+    if (elMeal) elMeal.checked = currentSettings.mealReminders !== false;
+
+    // Unit & BMR
+    const elUnits = document.getElementById('setUnits');
+    if (elUnits && currentSettings.units) elUnits.value = currentSettings.units;
+
+    const elBmr = document.getElementById('setBmrFormula');
+    if (elBmr && currentSettings.bmrFormula) elBmr.value = currentSettings.bmrFormula;
+
+    // Water Alarm Config sync
+    const waterCfg = WaterAlarm.getConfig();
+    const elWaterEn = document.getElementById('setWaterAlarmEnabled');
+    if (elWaterEn) elWaterEn.checked = !!waterCfg.enabled;
+
+    const elWaterInt = document.getElementById('setWaterInterval');
+    if (elWaterInt) elWaterInt.value = waterCfg.intervalMins || 60;
+
+    const elWaterSnd = document.getElementById('setWaterSound');
+    if (elWaterSnd) elWaterSnd.checked = waterCfg.sound !== false;
+
+    const elWaterRem = document.getElementById('setWaterRemark');
+    if (elWaterRem) elWaterRem.value = waterCfg.remark || "Time to hydrate! Drink a fresh glass of water 💧";
+  }
+
+  function switchSettingsTab(tabName, btn) {
+    document.querySelectorAll('.settings-tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    document.querySelectorAll('.settings-tab-content').forEach(tc => tc.style.display = 'none');
+    const target = document.getElementById(`tab-${tabName}`);
+    if (target) target.style.display = 'block';
+  }
+
+  function selectTheme(themeName) {
+    currentSettings.theme = themeName;
+    document.querySelectorAll('.theme-option-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.theme === themeName);
+    });
+    AppSettings.saveSettings(currentSettings);
+    showToast(`Switched theme to ${themeName}!`, 'success');
+  }
+
+  function selectAccent(colorCode) {
+    currentSettings.accent = colorCode;
+    document.querySelectorAll('.color-swatch').forEach(sw => {
+      sw.classList.toggle('active', sw.dataset.color.toLowerCase() === colorCode.toLowerCase());
+    });
+    AppSettings.saveSettings(currentSettings);
+    showToast(`Accent tint updated!`, 'success');
+  }
+
+  function onSettingToggle(key, value) {
+    currentSettings[key] = value;
+    AppSettings.saveSettings(currentSettings);
+    showToast(`Updated preference: ${key}`, 'info');
+  }
+
+  function updateWaterAlarmLive() {
+    const enabled = document.getElementById('setWaterAlarmEnabled').checked;
+    const intervalMins = parseInt(document.getElementById('setWaterInterval').value, 10) || 60;
+    const sound = document.getElementById('setWaterSound').checked;
+    const remark = document.getElementById('setWaterRemark').value || "Time to hydrate! Drink a fresh glass of water 💧";
+
+    WaterAlarm.saveConfig({
+      enabled,
+      intervalMins,
+      sound,
+      remark,
+      notify: true
+    });
+  }
+
+  function testAudioChime() {
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+      osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.5);
+      showToast("Hydration chime played! 🔔", 'info');
+    } catch(e) {
+      showToast("Audio device not active", 'warning');
+    }
+  }
+
+  function saveAllSettings() {
+    updateWaterAlarmLive();
+    AppSettings.saveSettings(currentSettings);
+    showToast("All settings saved and applied successfully!", "success");
+  }
+
+  function exportUserData() {
+    try {
+      const currentUser = localStorage.getItem('currentUser') || '{}';
+      const waterAlarm = localStorage.getItem('nutri_water_alarm') || '{}';
+      const settings = localStorage.getItem('nutri_settings') || '{}';
+
+      const exportPayload = {
+        exportedAt: new Date().toISOString(),
+        system: "Personalized Nutrition Management System - NutriTrack",
+        user: JSON.parse(currentUser),
+        settings: JSON.parse(settings),
+        waterAlarm: JSON.parse(waterAlarm)
+      };
+
+      const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `nutritrack_backup_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast("Backup exported successfully! 📁", "success");
+    } catch(e) {
+      showToast("Export failed: " + e.message, "error");
+    }
+  }
+
+  function handleImportFile(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (data.settings) {
+          AppSettings.saveSettings(data.settings);
+        }
+        if (data.waterAlarm) {
+          WaterAlarm.saveConfig(data.waterAlarm);
+        }
+        loadSettingsIntoUI();
+        showToast("Backup successfully restored! 🚀", "success");
+      } catch(err) {
+        showToast("Invalid JSON file format", "error");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function resetClientSettings() {
+    if (confirm("Reset all local display preferences and alarms to default?")) {
+      localStorage.removeItem('nutri_settings');
+      AppSettings.saveSettings(AppSettings.DEFAULT_SETTINGS);
+      loadSettingsIntoUI();
+      showToast("Preferences reset to default values", "info");
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Workouts & Interactive Arena — NutriTrack</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    .app-layout { display:grid; grid-template-columns:220px 1fr; min-height:100vh; }
+    .app-sidebar { background:var(--bg2); border-right:1px solid var(--border); padding:1.25rem .75rem; display:flex; flex-direction:column; position:sticky; top:0; height:100vh; overflow-y:auto; }
+    .s-logo { display:flex; align-items:center; gap:.6rem; margin-bottom:2rem; padding:.25rem .5rem; }
+    .s-logo .s-icon { width:36px; height:36px; background:linear-gradient(135deg,var(--ac-green),var(--dk-green)); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+    .s-logo span { font-family:'Outfit',sans-serif; font-weight:800; font-size:1.1rem; }
+    .nav-section { margin-bottom:1.25rem; }
+    .nav-section-label { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--text-dim); padding:0 .6rem; margin-bottom:.4rem; }
+    .nav-item { display:flex; align-items:center; gap:.65rem; padding:.55rem .7rem; border-radius:10px; color:var(--text-muted); font-size:.875rem; font-weight:500; transition:all .2s; margin-bottom:2px; cursor:pointer; text-decoration:none; }
+    .nav-item:hover { background:var(--card); color:var(--text); }
+    .nav-item.active { background:rgba(76,139,74,.15); color:var(--ac-green); }
+    .nav-item .ni { font-size:1rem; width:18px; text-align:center; }
+    .sidebar-bottom { margin-top:auto; border-top:1px solid var(--border); padding-top:.75rem; }
+    .user-pill { display:flex; align-items:center; gap:.65rem; padding:.6rem .7rem; border-radius:12px; cursor:pointer; transition:background .2s; }
+    .user-pill:hover { background:var(--card); }
+    .user-avatar { width:36px; height:36px; min-width:36px; min-height:36px; max-width:36px; max-height:36px; border-radius:50%; background:var(--dk-green); display:flex; align-items:center; justify-content:center; font-size:.95rem; font-weight:700; color:var(--ac-green); overflow:hidden; flex-shrink:0; border:2px solid rgba(76,139,74,.4); }
+    .user-avatar img { width:100% !important; height:100% !important; max-width:100% !important; max-height:100% !important; border-radius:50% !important; object-fit:cover !important; display:block !important; aspect-ratio:1/1; }
+    .user-info { flex:1; min-width:0; overflow:hidden; }
+    .user-name { font-size:.85rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .user-goal { font-size:.72rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+    .app-main { padding:1.75rem; overflow-y:auto; }
+    .page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; }
+
+    .plan-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:1.25rem; margin-bottom:1.5rem; }
+    .plan-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1.25rem; display:flex; flex-direction:column; transition:transform .2s, border-color .2s; position:relative; }
+    .plan-card:hover { transform:translateY(-3px); border-color:var(--ac-green); }
+    
+    .active-session-banner { background:linear-gradient(135deg, rgba(76,139,74,.2), rgba(44,63,45,.4)); border:1px solid var(--ac-green); border-radius:16px; padding:1.25rem; margin-bottom:1.5rem; display:flex; align-items:center; justify-content:space-between; }
+    
+    .exercise-item { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:1rem; margin-bottom:.75rem; display:flex; align-items:center; justify-content:space-between; }
+    
+    .tab-bar { display:flex; gap:.5rem; border-bottom:1px solid var(--border); margin-bottom:1.25rem; }
+    .tab-btn { padding:.6rem 1rem; border:none; background:none; color:var(--text-muted); font-size:.875rem; font-weight:600; cursor:pointer; border-bottom:2px solid transparent; }
+    .tab-btn.active { color:var(--ac-green); border-bottom-color:var(--ac-green); }
+
+    /* ── Coach Cartoon Character Styles ── */
+    .coach-card {
+      background: radial-gradient(circle at 50% 20%, rgba(76,139,74,0.15) 0%, rgba(20,26,22,0.95) 70%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .coach-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: .5rem;
+    }
+    .coach-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .25rem .75rem;
+      border-radius: 20px;
+      background: rgba(76,139,74,0.2);
+      border: 1px solid var(--ac-green);
+      color: var(--ac-green);
+      font-weight: 700;
+      font-size: .8rem;
+    }
+    .coach-status-pill {
+      font-size: .78rem;
+      padding: .2rem .6rem;
+      border-radius: 12px;
+      background: rgba(229,194,0,0.15);
+      color: var(--gold);
+      font-weight: 600;
+    }
+    .coach-status-pill.active {
+      background: rgba(76,139,74,0.25);
+      color: var(--ac-green);
+    }
+    .coach-stage-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 230px;
+      position: relative;
+    }
+    .coach-avatar-container {
+      width: 170px;
+      height: 200px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: .75rem;
+    }
+
+    /* Keyframe Animations for Cartoon Character Form Movements */
+    @keyframes coachBreathe {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-4px) scale(1.01); }
+    }
+    @keyframes animSquat {
+      0%, 100% { transform: translateY(0); }
+      40% { transform: translateY(32px) scaleY(0.82) scaleX(1.08); }
+      60% { transform: translateY(30px) scaleY(0.84); }
+    }
+    @keyframes animJumpingJacks {
+      0%, 100% { transform: translateY(0) scale(1); }
+      25% { transform: translateY(-16px) scale(1.05); }
+      50% { transform: translateY(-8px) scale(0.98); }
+      75% { transform: translateY(-18px) scale(1.04); }
+    }
+    @keyframes animPushup {
+      0%, 100% { transform: rotate(18deg) translateY(0); }
+      50% { transform: rotate(18deg) translateY(22px) scaleY(0.88); }
+    }
+    @keyframes animCardio {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      25% { transform: translateY(-12px) rotate(-3deg); }
+      50% { transform: translateY(0) rotate(0deg); }
+      75% { transform: translateY(-12px) rotate(3deg); }
+    }
+    @keyframes animCore {
+      0%, 100% { transform: scale(1) translateY(0); }
+      50% { transform: scale(0.92) translateY(8px); }
+    }
+    @keyframes animArmSwing {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(-55deg); }
+    }
+
+    .coach-char-svg {
+      width: 100%;
+      height: 100%;
+      transition: transform 0.3s ease;
+    }
+    .coach-char-svg.breathe {
+      animation: coachBreathe 3s ease-in-out infinite;
+    }
+    .coach-char-svg.squat {
+      animation: animSquat 1.8s ease-in-out infinite;
+    }
+    .coach-char-svg.jumping-jacks {
+      animation: animJumpingJacks 0.9s ease-in-out infinite;
+    }
+    .coach-char-svg.pushup {
+      animation: animPushup 1.6s ease-in-out infinite;
+    }
+    .coach-char-svg.cardio {
+      animation: animCardio 0.8s ease-in-out infinite;
+    }
+    .coach-char-svg.core {
+      animation: animCore 1.4s ease-in-out infinite;
+    }
+
+    .coach-speech-bubble {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: .65rem 1rem;
+      max-width: 480px;
+      font-size: .85rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .coach-speech-bubble::before {
+      content: '▲';
+      color: var(--card);
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: .7rem;
+    }
+
+    /* Complete Button locked state */
+    .btn-locked {
+      opacity: 0.55 !important;
+      cursor: not-allowed !important;
+      background: var(--bg3) !important;
+      border-color: var(--border) !important;
+      color: var(--text-dim) !important;
+    }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <!-- Sidebar -->
+  <aside class="app-sidebar">
+    <div class="s-logo"><div class="s-icon">🥗</div><span>NutriTrack</span></div>
+    <div class="nav-section">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="ni">🏠</span> Dashboard</a>
+      <a href="food.html" class="nav-item"><span class="ni">🥗</span> Food & Meals</a>
+      <a href="workout.html" class="nav-item active"><span class="ni">💪</span> Workouts</a>
+      <a href="water.html" class="nav-item"><span class="ni">💧</span> Water Tracker</a>
+      <a href="weight.html" class="nav-item"><span class="ni">⚖️</span> Weight</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Insights & System</div>
+      <a href="reports.html" class="nav-item"><span class="ni">📊</span> Reports</a>
+      <a href="profile.html" class="nav-item"><span class="ni">👤</span> Profile</a>
+      <a href="settings.html" class="nav-item"><span class="ni">⚙️</span> Settings</a>
+      <a href="about.html" class="nav-item"><span class="ni">ℹ️</span> About Project</a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="user-pill" onclick="window.location.href='profile.html'">
+        <div class="user-avatar" id="sideAvatar">U</div>
+        <div class="user-info">
+          <div class="user-name" id="sideUserName">Loading…</div>
+          <div class="user-goal" id="sideGoal">—</div>
+        </div>
+      </div>
+      <div class="nav-item" style="margin-top:.25rem;color:var(--red)" onclick="logoutUser()">
+        <span class="ni">🚪</span> Log Out
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="app-main">
+    <div class="page-header">
+      <div>
+        <h1>Workout Plans & Interactive Arena</h1>
+        <p style="color:var(--text-muted);font-size:.875rem">AI-personalized routines, animated form demonstration coach, and gamified progress.</p>
+      </div>
+      <div style="display:flex;gap:.75rem">
+        <button class="btn btn-secondary btn-sm" onclick="startRecommendedInGame()">🎮 Play All in Arena →</button>
+        <button class="btn btn-primary btn-sm" onclick="openCreatePlanModal()">+ Custom Plan</button>
+      </div>
+    </div>
+
+    <!-- Active Session Banner -->
+    <div class="active-session-banner" id="activeSessionBanner" style="display:none">
+      <div>
+        <div style="font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ac-green);font-weight:700">🔥 Active Workout Session</div>
+        <div style="font-size:1.2rem;font-weight:800;margin-top:.2rem" id="activeSessionTitle">Session #0</div>
+      </div>
+      <div style="display:flex;gap:.75rem">
+        <button class="btn btn-primary" onclick="switchTab('player', document.querySelectorAll('.tab-btn')[1])">Resume Interactive Workout →</button>
+        <button class="btn btn-secondary" style="color:var(--red);border-color:var(--red)" onclick="finishSession()">End Session</button>
+      </div>
+    </div>
+
+    <!-- Health Safety Banner -->
+    <div style="background:rgba(229,194,0,.1);border:1px solid rgba(229,194,0,.3);border-radius:12px;padding:1rem;margin-bottom:1.5rem;font-size:.85rem;color:var(--gold);display:flex;align-items:center;gap:.75rem">
+      <span style="font-size:1.4rem">⚕️</span>
+      <span>Exercise recommendations are dynamically generated from SQL database matching your health profile, goal, and medical safety rules.</span>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('plans', this)">🏋️ Today's Recommended Routines</button>
+      <button class="tab-btn" onclick="switchTab('player', this)">🎮 Interactive Game Workout</button>
+      <button class="tab-btn" onclick="switchTab('history', this)">📜 Workout History</button>
+    </div>
+
+    <!-- Tab 1: Recommended Routines -->
+    <div id="tabPlans">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <div>
+          <h3 style="font-size:1.15rem;font-weight:700">Recommended Routines For You Today</h3>
+          <p style="font-size:.82rem;color:var(--text-muted)">Filtered according to your personalized health goal, target muscles, and safety profile.</p>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="startRecommendedInGame()">🚀 Start All in Game Arena</button>
+      </div>
+      <div class="plan-grid" id="planList"><div class="spinner"></div></div>
+    </div>
+
+    <!-- Tab 2: Interactive Game Player Arena -->
+    <div id="tabPlayer" style="display:none">
+      <div class="card" style="margin-bottom:1.5rem">
+        
+        <!-- Arena Header & Points -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:1rem">
+          <div>
+            <h3 style="font-size:1.3rem;font-weight:800">🎮 Today's Interactive Workout Arena</h3>
+            <p style="color:var(--text-muted);font-size:.85rem">Perform sets with your animated coach, run the countdown timer, and log burned calories!</p>
+          </div>
+          <div style="display:flex;gap:1rem;align-items:center">
+            <div style="text-align:right">
+              <div style="font-size:1.4rem;font-weight:800;color:var(--gold)" id="playerScore">⭐ 150 pts</div>
+              <div style="font-size:.78rem;color:var(--ac-green);font-weight:700" id="playerLevel">Level 2 Fitness Warrior</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="toggleCoachGender()" title="Switch Coach character between Man and Woman" style="font-size:.75rem">
+              🔄 Switch Coach Gender
+            </button>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div style="margin-bottom:1.25rem">
+          <div style="display:flex;justify-content:space-between;font-size:.85rem;font-weight:700;margin-bottom:.4rem">
+            <span>Routine Progress</span>
+            <span id="playerProgressPct" style="color:var(--ac-green)">0% Completed</span>
+          </div>
+          <div class="progress-bar" style="height:12px;border-radius:6px;background:var(--bg3)">
+            <div class="progress-fill" id="playerProgressFill" style="width:0%;transition:width 0.4s ease;background:linear-gradient(90deg,var(--ac-green),var(--gold))"></div>
+          </div>
+        </div>
+
+        <!-- Cartoon Coach & Active Exercise Box -->
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.5rem;text-align:center;position:relative" id="activeExerciseBox">
+          
+          <!-- Rest Timer Overlay -->
+          <div id="restTimerBox" style="display:none;background:rgba(18,24,19,.96);border:2px solid var(--gold);border-radius:14px;padding:2rem;margin-bottom:1rem">
+            <div style="font-size:2rem;margin-bottom:.5rem">💤 REST INTERVAL</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:3.5rem;font-weight:800;color:var(--gold)" id="restTimeVal">30s</div>
+            <p style="color:var(--text-muted);font-size:.9rem;margin-top:.5rem">Deep breath! Hydrate and get set for your next round.</p>
+            <button class="btn btn-secondary btn-sm" style="margin-top:1rem" onclick="skipRest()">Skip Rest →</button>
+          </div>
+
+          <!-- Coach Cartoon Demonstration Card -->
+          <div class="coach-card" id="coachCard">
+            <div class="coach-top-bar">
+              <span class="coach-badge" id="coachBadge">🏋️‍♂️ Coach Alex (Male) — Form Demonstration</span>
+              <span class="coach-status-pill" id="coachStatus">🟡 Start Timer to Begin Exercise</span>
+            </div>
+            
+            <div class="coach-stage-wrap">
+              <div class="coach-avatar-container" id="coachAvatarContainer">
+                <!-- SVG Cartoon will be inserted dynamically based on user gender & active exercise -->
+              </div>
+              <div class="coach-speech-bubble" id="coachSpeech">
+                <span>💬</span>
+                <span id="coachAdvice">"Get ready! Press 'Start Timer' to begin your form and unlock set completion."</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Exercise Details & Metrics -->
+          <div id="exercisePlayerContent">
+            <div style="display:inline-block;padding:.2rem .75rem;border-radius:20px;background:rgba(76,139,74,.15);color:var(--ac-green);font-weight:700;font-size:.8rem;margin-bottom:.5rem" id="exCategoryBadge">Cardio & Warmup</div>
+            <h2 style="font-size:1.8rem;font-weight:800;margin-bottom:.3rem" id="exCurrentName">Jumping Jacks</h2>
+            <p style="color:var(--text-muted);font-size:.875rem;margin-bottom:1.25rem" id="exInstructions">Keep feet shoulder-width apart. Jump legs apart while bringing hands above head.</p>
+
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem">
+              <div style="background:var(--card);padding:.8rem;border-radius:12px;border:1px solid var(--border)">
+                <div style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase">Current Set</div>
+                <div style="font-size:1.4rem;font-weight:800;color:var(--ac-green)" id="exSetTracker">Set 1 / 3</div>
+              </div>
+              <div style="background:var(--card);padding:.8rem;border-radius:12px;border:1px solid var(--border)">
+                <div style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase">Target Reps</div>
+                <div style="font-size:1.4rem;font-weight:800;color:var(--gold)" id="exRepTracker">15 Reps</div>
+              </div>
+              <div style="background:var(--card);padding:.8rem;border-radius:12px;border:1px solid var(--border)">
+                <div style="font-size:.75rem;color:var(--text-dim);text-transform:uppercase">Timer</div>
+                <div style="font-size:1.4rem;font-weight:800;color:var(--blue)" id="exTimerVal">00:45</div>
+              </div>
+            </div>
+
+            <!-- Controls: Complete Set is LOCKED until timer starts -->
+            <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+              <button class="btn btn-primary" id="btnTimerStart" style="padding:.75rem 1.8rem;font-size:1rem" onclick="toggleTimer()">▶️ START TIMER</button>
+              <button class="btn btn-secondary btn-locked" id="btnCompleteSet" style="padding:.75rem 1.5rem" onclick="completeCurrentSet()" disabled title="Start timer first to unlock">
+                🔒 Complete Set (Start Timer First)
+              </button>
+              <button class="btn btn-secondary" style="padding:.75rem 1.5rem" onclick="skipExercise()">⏭️ Skip Exercise</button>
+              <button class="btn btn-secondary" style="padding:.75rem 1.2rem;color:var(--red);border-color:rgba(224,85,85,.3)" onclick="resetTimer()">🔄 Reset</button>
+            </div>
+            
+            <p style="font-size:.75rem;color:var(--text-dim);margin-top:.75rem" id="timerNotice">
+              ⏱️ <em>Notice: To ensure accurate workout tracking, you must start the timer before completing this set.</em>
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: History -->
+    <div id="tabHistory" style="display:none">
+      <div class="card">
+        <div id="historyList"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Modal: View Plan Details -->
+<div class="modal-overlay" id="planModal" style="position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000;padding:1rem">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:100%;max-width:540px;padding:1.5rem">
+    <h3 style="font-size:1.3rem;margin-bottom:.5rem" id="modalPlanTitle">Plan Title</h3>
+    <p style="color:var(--text-muted);font-size:.875rem;margin-bottom:1.25rem" id="modalPlanDesc">Description</p>
+    
+    <h4 style="font-size:.9rem;text-transform:uppercase;color:var(--text-dim);margin-bottom:.75rem">Included Exercises</h4>
+    <div id="modalPlanExercises" style="max-height:260px;overflow-y:auto;margin-bottom:1.25rem"></div>
+
+    <div style="display:flex;gap:.75rem;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal('planModal')">Close</button>
+      <button class="btn btn-primary" id="btnStartPlan" onclick="startWorkoutFromModal()">🚀 Play in Game Arena</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Create Custom Plan -->
+<div class="modal-overlay" id="createPlanModal" style="position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000;padding:1rem">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;width:100%;max-width:500px;padding:1.5rem">
+    <h3 style="font-size:1.2rem;margin-bottom:1rem">Create Custom Workout Plan</h3>
+    <div class="form-group">
+      <label>Plan Title *</label>
+      <input class="form-control" id="newPlanTitle" placeholder="e.g. Upper Body Strength"/>
+    </div>
+    <div class="form-group">
+      <label>Target Goal</label>
+      <select class="form-control" id="newPlanGoal">
+        <option value="WEIGHT_LOSS">Weight Loss</option>
+        <option value="MUSCLE_GAIN">Muscle Gain</option>
+        <option value="IMPROVED_FITNESS">Improved Fitness</option>
+        <option value="MAINTENANCE">Maintenance</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+      <div class="form-group">
+        <label>Duration (Weeks)</label>
+        <input class="form-control" type="number" id="newPlanWeeks" value="4"/>
+      </div>
+      <div class="form-group">
+        <label>Est. Calories Burn</label>
+        <input class="form-control" type="number" id="newPlanCalories" value="400"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <textarea class="form-control" id="newPlanDesc" rows="2" placeholder="Brief routine description..."></textarea>
+    </div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.25rem">
+      <button class="btn btn-secondary" onclick="closeModal('createPlanModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitCreatePlan()">Save Workout Plan</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="js/api.js"></script>
+<script>
+let currentUserData = null;
+let coachGender = 'Male'; // Default, auto-detects from user profile
+let currentPlanId = null;
+let currentSessionId = null;
+
+// Routine queue for Game Arena
+let routineExercises = [
+  { exerciseId: 101, name: 'Jumping Jacks', category: 'Cardio', sets: 3, reps: 20, seconds: 45, caloriesBurn: 35, instructions: 'Keep feet shoulder-width apart. Jump legs apart while bringing hands above head in a fluid rhythmic arc.' },
+  { exerciseId: 102, name: 'Bodyweight Squats', category: 'Lower Body', sets: 3, reps: 15, seconds: 45, caloriesBurn: 30, instructions: 'Lower your hips back as if sitting in a chair, keeping knees tracking over toes and chest upright.' },
+  { exerciseId: 103, name: 'Push-Ups', category: 'Upper Body', sets: 3, reps: 12, seconds: 45, caloriesBurn: 28, instructions: 'Keep body in a rigid straight line from crown to heels. Lower chest to floor and press back up firmly.' },
+  { exerciseId: 104, name: 'Mountain Climbers', category: 'Core', sets: 3, reps: 20, seconds: 40, caloriesBurn: 40, instructions: 'From a strong plank position, drive knees alternately toward chest in a brisk, continuous rhythm.' }
+];
+
+let playerIndex = 0;
+let currentSetNumber = 1;
+let playerScoreVal = 150;
+let timerInterval = null;
+let isTimerRunning = false;
+let remainingSeconds = 45;
+let isResting = false;
+let hasTimerStartedForSet = false; // Strictly enforces timer-before-completion
+
+// SVG Animated Cartoon Generators
+function getCartoonSvg(gender, animClass) {
+  const isFemale = gender.toLowerCase().includes('female') || gender.toLowerCase().includes('woman') || gender.toLowerCase().includes('girl');
+  
+  if (isFemale) {
+    // ── Female Cartoon Character (Coach Maya) ──
+    return `
+      <svg class="coach-char-svg ${animClass}" viewBox="0 0 160 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="skinFem" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFDFBA"/>
+            <stop offset="100%" stop-color="#F1C27D"/>
+          </linearGradient>
+          <linearGradient id="outfitFem" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#E55555"/>
+            <stop offset="100%" stop-color="#C0392B"/>
+          </linearGradient>
+        </defs>
+        <!-- Shadow -->
+        <ellipse cx="80" cy="192" rx="38" ry="7" fill="rgba(0,0,0,0.3)"/>
+        
+        <!-- Left Leg -->
+        <rect x="62" y="128" width="12" height="52" rx="6" fill="#2C3E50"/>
+        <!-- Left Shoe -->
+        <rect x="58" y="178" width="18" height="10" rx="4" fill="#E5C200"/>
+        
+        <!-- Right Leg -->
+        <rect x="86" y="128" width="12" height="52" rx="6" fill="#2C3E50"/>
+        <!-- Right Shoe -->
+        <rect x="84" y="178" width="18" height="10" rx="4" fill="#E5C200"/>
+
+        <!-- Torso & Athletic Top -->
+        <path d="M 64 74 L 96 74 L 92 128 L 68 128 Z" fill="url(#outfitFem)" rx="4"/>
+        
+        <!-- Belt/Midriff -->
+        <rect x="68" y="120" width="24" height="8" rx="2" fill="#E5C200"/>
+
+        <!-- Left Arm -->
+        <g id="leftArmFem">
+          <rect x="48" y="76" width="11" height="42" rx="5" fill="url(#skinFem)"/>
+          <circle cx="53" cy="120" r="5" fill="url(#skinFem)"/>
+        </g>
+        
+        <!-- Right Arm -->
+        <g id="rightArmFem">
+          <rect x="101" y="76" width="11" height="42" rx="5" fill="url(#skinFem)"/>
+          <circle cx="107" cy="120" r="5" fill="url(#skinFem)"/>
+        </g>
+
+        <!-- Neck -->
+        <rect x="74" y="58" width="12" height="18" rx="4" fill="url(#skinFem)"/>
+
+        <!-- Head -->
+        <ellipse cx="80" cy="46" rx="19" ry="21" fill="url(#skinFem)"/>
+
+        <!-- Eyes -->
+        <ellipse cx="73" cy="45" rx="2.5" ry="3.5" fill="#2C3E50"/>
+        <ellipse cx="87" cy="45" rx="2.5" ry="3.5" fill="#2C3E50"/>
+        <circle cx="74" cy="44" r="1" fill="#fff"/>
+        <circle cx="88" cy="44" r="1" fill="#fff"/>
+
+        <!-- Smile / Determined expression -->
+        <path d="M 74 54 Q 80 59 86 54" stroke="#C0392B" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+        <!-- Hair: Athletic High Ponytail -->
+        <path d="M 60 40 Q 80 20 100 40 Q 100 24 80 20 Q 60 24 60 40 Z" fill="#4A2F1B"/>
+        <path d="M 94 30 Q 120 28 118 55 Q 112 50 100 38 Z" fill="#4A2F1B"/>
+        
+        <!-- Sports Headband -->
+        <rect x="61" y="32" width="38" height="6" rx="3" fill="#4C8B4A"/>
+      </svg>`;
+  } else {
+    // ── Male Cartoon Character (Coach Alex) ──
+    return `
+      <svg class="coach-char-svg ${animClass}" viewBox="0 0 160 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="skinMale" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFDFBA"/>
+            <stop offset="100%" stop-color="#E0AC69"/>
+          </linearGradient>
+          <linearGradient id="outfitMale" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#2980B9"/>
+            <stop offset="100%" stop-color="#1B4F72"/>
+          </linearGradient>
+        </defs>
+        <!-- Shadow -->
+        <ellipse cx="80" cy="192" rx="42" ry="7" fill="rgba(0,0,0,0.3)"/>
+        
+        <!-- Left Leg -->
+        <rect x="58" y="128" width="14" height="52" rx="6" fill="#1C2833"/>
+        <!-- Left Sneaker -->
+        <rect x="54" y="178" width="20" height="11" rx="4" fill="#4C8B4A"/>
+        
+        <!-- Right Leg -->
+        <rect x="88" y="128" width="14" height="52" rx="6" fill="#1C2833"/>
+        <!-- Right Sneaker -->
+        <rect x="86" y="178" width="20" height="11" rx="4" fill="#4C8B4A"/>
+
+        <!-- Broad Shouldered Torso & Athletic Singlet -->
+        <path d="M 58 72 L 102 72 L 96 128 L 64 128 Z" fill="url(#outfitMale)" rx="4"/>
+        
+        <!-- Shorts Belt Line -->
+        <rect x="63" y="124" width="34" height="6" rx="2" fill="#E5C200"/>
+
+        <!-- Left Muscular Arm -->
+        <g id="leftArmMale">
+          <rect x="42" y="74" width="13" height="44" rx="6" fill="url(#skinMale)"/>
+          <circle cx="48" cy="122" r="6" fill="url(#skinMale)"/>
+        </g>
+        
+        <!-- Right Muscular Arm -->
+        <g id="rightArmMale">
+          <rect x="105" y="74" width="13" height="44" rx="6" fill="url(#skinMale)"/>
+          <circle cx="112" cy="122" r="6" fill="url(#skinMale)"/>
+        </g>
+
+        <!-- Strong Neck -->
+        <rect x="72" y="56" width="16" height="18" rx="4" fill="url(#skinMale)"/>
+
+        <!-- Head -->
+        <ellipse cx="80" cy="44" rx="20" ry="22" fill="url(#skinMale)"/>
+
+        <!-- Confident Eyes -->
+        <ellipse cx="72" cy="43" rx="2.5" ry="3.5" fill="#1C2833"/>
+        <ellipse cx="88" cy="43" rx="2.5" ry="3.5" fill="#1C2833"/>
+        <circle cx="73" cy="42" r="1" fill="#fff"/>
+        <circle cx="89" cy="42" r="1" fill="#fff"/>
+
+        <!-- Determined Coach Grin -->
+        <path d="M 73 53 Q 80 58 87 53" stroke="#935116" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+
+        <!-- Short Athletic Hair -->
+        <path d="M 58 38 Q 80 18 102 38 Q 98 22 80 19 Q 62 22 58 38 Z" fill="#2C3E50"/>
+        
+        <!-- Athletic Sweatband -->
+        <rect x="60" y="31" width="40" height="6" rx="3" fill="#E5C200"/>
+      </svg>`;
+  }
+}
+
+function getAnimationClassForExercise(name, cat) {
+  const n = (name || '').toLowerCase();
+  const c = (cat || '').toLowerCase();
+  if (n.includes('squat')) return 'squat';
+  if (n.includes('jack') || n.includes('jump')) return 'jumping-jacks';
+  if (n.includes('push') || n.includes('floor')) return 'pushup';
+  if (n.includes('run') || n.includes('knee') || n.includes('climber') || n.includes('burpee') || c.includes('cardio') || c.includes('hiit')) return 'cardio';
+  if (n.includes('plank') || n.includes('crunch') || n.includes('twist') || n.includes('abs') || c.includes('core')) return 'core';
+  return 'jumping-jacks';
+}
+
+function getFormCueForExercise(name) {
+  const n = (name || '').toLowerCase();
+  if (n.includes('squat')) return "Keep chest high, push knees outward, and drive firmly through your heels!";
+  if (n.includes('jack')) return "Land softly on the balls of your feet and maintain a smooth, steady breathing rhythm!";
+  if (n.includes('push')) return "Keep core tight in a straight plank line and avoid flaring your elbows!";
+  if (n.includes('burpee') || n.includes('climber')) return "Explode with power, keep shoulders stacked over wrists, and stay light on your toes!";
+  if (n.includes('plank') || n.includes('crunch')) return "Brace your abdominal wall as if preparing for a punch, without straining your neck!";
+  return "Focus on full range of motion, breathe steadily, and keep strict form!";
+}
+
+function toggleCoachGender() {
+  coachGender = (coachGender === 'Male') ? 'Female' : 'Male';
+  showToast(`Switched Coach Avatar to ${coachGender}!`, 'info');
+  updateCoachAvatar();
+}
+
+function updateCoachAvatar() {
+  const current = routineExercises[playerIndex] || routineExercises[0];
+  const anim = isTimerRunning ? getAnimationClassForExercise(current.name, current.category) : 'breathe';
+  const svgHtml = getCartoonSvg(coachGender, anim);
+  document.getElementById('coachAvatarContainer').innerHTML = svgHtml;
+  
+  const isFemale = coachGender.toLowerCase().includes('female') || coachGender.toLowerCase().includes('woman');
+  const coachName = isFemale ? "Coach Maya (Female Athlete)" : "Coach Alex (Male Athlete)";
+  document.getElementById('coachBadge').innerHTML = `${isFemale ? '🏋️‍♀️' : '🏋️‍♂️'} ${coachName} — Form Coach`;
+  
+  if (isTimerRunning) {
+    document.getElementById('coachStatus').className = 'coach-status-pill active';
+    document.getElementById('coachStatus').textContent = '🟢 Performing Exercise — Follow Coach Rhythm';
+    document.getElementById('coachAdvice').textContent = `"${getFormCueForExercise(current.name)}"`;
+  } else {
+    document.getElementById('coachStatus').className = 'coach-status-pill';
+    document.getElementById('coachStatus').textContent = '🟡 Ready — Start Timer to Begin & Unlock Complete';
+    document.getElementById('coachAdvice').textContent = `"${current.instructions || 'Start the timer to begin this set!'}"`;
+  }
+}
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.getElementById('tabPlans').style.display = tab === 'plans' ? 'block' : 'none';
+  document.getElementById('tabPlayer').style.display = tab === 'player' ? 'block' : 'none';
+  document.getElementById('tabHistory').style.display = tab === 'history' ? 'block' : 'none';
+  
+  if (tab === 'plans') loadPlans();
+  else if (tab === 'player') initInteractivePlayer();
+  else if (tab === 'history') loadHistory();
+}
+
+async function initInteractivePlayer() {
+  try {
+    if (!currentUserData) {
+      currentUserData = await Auth.me();
+      if (currentUserData && currentUserData.gender) {
+        const g = currentUserData.gender.toLowerCase();
+        if (g.includes('female') || g.includes('woman') || g.includes('girl')) {
+          coachGender = 'Female';
+        } else {
+          coachGender = 'Male';
+        }
+      }
+    }
+  } catch {}
+  updatePlayerUI();
+}
+
+function updatePlayerUI() {
+  const current = routineExercises[playerIndex];
+  if (!current) {
+    document.getElementById('exercisePlayerContent').innerHTML = `
+      <div style="padding:2rem">
+        <div style="font-size:3.5rem">🏆</div>
+        <h2 style="font-size:1.8rem;font-weight:800;color:var(--gold);margin-top:.5rem">WORKOUT COMPLETE!</h2>
+        <p style="color:var(--text-muted);margin-bottom:1.5rem">Spectacular effort! All routine sets completed & automatically recorded in your Nutritional Reports.</p>
+        <button class="btn btn-primary" onclick="restartRoutine()">🔄 Restart Routine</button>
+      </div>`;
+    document.getElementById('coachStatus').textContent = '🏆 Routine Finished!';
+    return;
+  }
+
+  document.getElementById('exCategoryBadge').textContent = current.category || 'General';
+  document.getElementById('exCurrentName').textContent = current.name;
+  document.getElementById('exInstructions').textContent = current.instructions || '';
+  document.getElementById('exSetTracker').textContent = `Set ${currentSetNumber} / ${current.sets || 3}`;
+  document.getElementById('exRepTracker').textContent = `${current.reps || 12} Reps`;
+
+  if (!isTimerRunning) {
+    remainingSeconds = current.seconds || 45;
+    renderTimerDisplay(remainingSeconds);
+  }
+
+  // ── STRICT TIMER FLOW: Reset lock state for new set ──
+  hasTimerStartedForSet = false;
+  const btnComp = document.getElementById('btnCompleteSet');
+  btnComp.disabled = true;
+  btnComp.classList.add('btn-locked');
+  btnComp.innerHTML = '🔒 Complete Set (Start Timer First)';
+  btnComp.title = 'You must start the timer before completing this set';
+
+  // Calculate Progress
+  const totalSets = routineExercises.reduce((a,e) => a + (e.sets || 3), 0);
+  let completedSetsCount = 0;
+  for (let i = 0; i < playerIndex; i++) completedSetsCount += (routineExercises[i].sets || 3);
+  completedSetsCount += (currentSetNumber - 1);
+  const pct = Math.round((completedSetsCount / totalSets) * 100);
+
+  document.getElementById('playerProgressPct').textContent = pct + '% Completed';
+  document.getElementById('playerProgressFill').style.width = pct + '%';
+  document.getElementById('playerScore').textContent = `⭐ ${playerScoreVal} pts`;
+
+  updateCoachAvatar();
+}
+
+function renderTimerDisplay(sec) {
+  const m = Math.floor(sec / 60).toString().padStart(2, '0');
+  const s = (sec % 60).toString().padStart(2, '0');
+  document.getElementById('exTimerVal').textContent = `${m}:${s}`;
+}
+
+function toggleTimer() {
+  const btn = document.getElementById('btnTimerStart');
+  const btnComp = document.getElementById('btnCompleteSet');
+
+  if (isTimerRunning) {
+    // Pause
+    clearInterval(timerInterval);
+    isTimerRunning = false;
+    btn.textContent = '▶️ RESUME TIMER';
+    updateCoachAvatar();
+  } else {
+    // Start / Resume
+    isTimerRunning = true;
+    hasTimerStartedForSet = true; // Timer has started!
+    btn.textContent = '⏸️ PAUSE';
+
+    // UNLOCK the Complete Set button now that the timer is started!
+    btnComp.disabled = false;
+    btnComp.classList.remove('btn-locked');
+    btnComp.innerHTML = '✅ COMPLETE SET';
+    btnComp.title = 'Click to record set completion';
+
+    updateCoachAvatar();
+
+    timerInterval = setInterval(() => {
+      if (remainingSeconds > 0) {
+        remainingSeconds--;
+        renderTimerDisplay(remainingSeconds);
+      } else {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        completeCurrentSet();
+      }
+    }, 1000);
+  }
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  isTimerRunning = false;
+  hasTimerStartedForSet = false;
+
+  document.getElementById('btnTimerStart').textContent = '▶️ START TIMER';
+  const current = routineExercises[playerIndex];
+  remainingSeconds = current ? (current.seconds || 45) : 45;
+  renderTimerDisplay(remainingSeconds);
+
+  // Lock complete button again on reset
+  const btnComp = document.getElementById('btnCompleteSet');
+  btnComp.disabled = true;
+  btnComp.classList.add('btn-locked');
+  btnComp.innerHTML = '🔒 Complete Set (Start Timer First)';
+
+  updateCoachAvatar();
+}
+
+async function completeCurrentSet() {
+  // STRICT RULE ENFORCEMENT: ONLY COMPLETE THE SET AFTER STARTING TIMER ONLY
+  if (!hasTimerStartedForSet) {
+    showToast('⚠️ You must start the timer first before completing the set!', 'warning');
+    return;
+  }
+
+  clearInterval(timerInterval);
+  isTimerRunning = false;
+  document.getElementById('btnTimerStart').textContent = '▶️ START TIMER';
+
+  const current = routineExercises[playerIndex];
+  playerScoreVal += 25; // Award 25 pts per set
+
+  // Record completion to backend / localStorage automatically so it feeds Reports!
+  try {
+    await Workout.completeExercise({
+      exerciseId: current.exerciseId || 1,
+      exerciseName: current.name,
+      durationSeconds: (current.seconds || 45) - remainingSeconds,
+      setsCompleted: 1,
+      repetitionsCompleted: current.reps || 12,
+      caloriesBurned: Math.round((current.caloriesBurn || 30) / (current.sets || 3)),
+      dailyScore: 25,
+      completionPercentage: 100
+    });
+  } catch {}
+
+  showToast(`✅ Set ${currentSetNumber} completed! +25 pts ⭐`, 'success');
+
+  if (currentSetNumber < (current.sets || 3)) {
+    currentSetNumber++;
+    startRestTimer();
+  } else {
+    currentSetNumber = 1;
+    playerIndex++;
+    startRestTimer();
+  }
+}
+
+function startRestTimer() {
+  isResting = true;
+  document.getElementById('restTimerBox').style.display = 'block';
+  document.getElementById('exercisePlayerContent').style.opacity = '0.25';
+  let restSec = 30;
+  document.getElementById('restTimeVal').textContent = restSec + 's';
+
+  const restInt = setInterval(() => {
+    restSec--;
+    document.getElementById('restTimeVal').textContent = restSec + 's';
+    if (restSec <= 0) {
+      clearInterval(restInt);
+      skipRest();
+    }
+  }, 1000);
+
+  window.currentRestInt = restInt;
+}
+
+function skipRest() {
+  if (window.currentRestInt) clearInterval(window.currentRestInt);
+  isResting = false;
+  document.getElementById('restTimerBox').style.display = 'none';
+  document.getElementById('exercisePlayerContent').style.opacity = '1';
+  updatePlayerUI();
+}
+
+function skipExercise() {
+  clearInterval(timerInterval);
+  isTimerRunning = false;
+  currentSetNumber = 1;
+  playerIndex++;
+  updatePlayerUI();
+}
+
+function restartRoutine() {
+  playerIndex = 0;
+  currentSetNumber = 1;
+  updatePlayerUI();
+}
+
+// ── Tab 1: Recommended Routines from SQL ──
+async function loadPlans() {
+  const listEl = document.getElementById('planList');
+  listEl.innerHTML = '<div class="spinner"></div>';
+  
+  try {
+    // 1. Fetch SQL recommended exercises based on user's goal and conditions
+    let recExercises = [];
+    try {
+      recExercises = await Workout.recommend();
+    } catch {}
+
+    // 2. Fetch workout plans
+    const plans = await Workout.getPlans();
+
+    if ((!recExercises || recExercises.length === 0) && (!plans || plans.length === 0)) {
+      listEl.innerHTML = '<p style="color:var(--text-muted);grid-column:1/-1;text-align:center;padding:2rem">No workout routines found.</p>';
+      return;
+    }
+
+    let cardsHtml = '';
+
+    // Render SQL recommended exercise cards
+    if (recExercises && recExercises.length > 0) {
+      cardsHtml += recExercises.map((ex, idx) => `
+        <div class="plan-card" style="border-top:3px solid var(--ac-green)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+            <span style="font-size:1.1rem;font-weight:700">${ex.exerciseName || ex.name}</span>
+            <span class="badge" style="background:rgba(76,139,74,.18);color:var(--ac-green);font-size:.7rem">${ex.category || 'Fitness'}</span>
+          </div>
+          <p style="color:var(--text-muted);font-size:.85rem;flex:1;margin-bottom:.8rem">${ex.instructions || 'Follow proper posture and breathing.'}</p>
+          <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem">
+            <span style="font-size:.75rem;padding:.15rem .45rem;border-radius:4px;background:var(--bg3);color:var(--text-dim)">🎯 ${ex.targetMuscle || 'Full Body'}</span>
+            <span style="font-size:.75rem;padding:.15rem .45rem;border-radius:4px;background:var(--bg3);color:var(--gold)">🔥 ~${ex.caloriesBurn || 35} kcal</span>
+            <span style="font-size:.75rem;padding:.15rem .45rem;border-radius:4px;background:var(--bg3);color:var(--blue)">⏱️ ${ex.sets || 3} sets x ${ex.repetitions || 15} reps</span>
+            ${ex.healthRuleStatus === 'ALLOWED' ? `<span style="font-size:.75rem;padding:.15rem .45rem;border-radius:4px;background:rgba(76,139,74,.15);color:var(--ac-green)">✓ Doctor Safe</span>` : ''}
+          </div>
+          <button class="btn btn-primary" onclick='startSingleExerciseInGame(${JSON.stringify(ex).replace(/'/g, "&apos;")})'>
+            ▶️ Play Routine in Game Arena
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // Render standard plans as well
+    if (plans && plans.length > 0) {
+      cardsHtml += plans.map(p => `
+        <div class="plan-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+            <span style="font-size:1.1rem;font-weight:700">${p.title}</span>
+            <span class="badge" style="background:rgba(229,194,0,.15);color:var(--gold);font-size:.7rem">${p.targetGoal || 'FITNESS'}</span>
+          </div>
+          <p style="color:var(--text-muted);font-size:.85rem;flex:1;margin-bottom:.8rem">${p.description}</p>
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:.8rem;color:var(--text-dim);margin-bottom:1rem">
+            <span>⏱️ ${p.durationWeeks || 4} weeks</span>
+            <span>🔥 ~${p.estimatedCaloriesBurn || 350} kcal</span>
+          </div>
+          <button class="btn btn-secondary" onclick="openPlanModal(${p.planId})">View & Start Plan →</button>
+        </div>
+      `).join('');
+    }
+
+    listEl.innerHTML = cardsHtml;
+  } catch(e) {
+    showToast(e.message, 'error');
+  }
+}
+
+function startSingleExerciseInGame(ex) {
+  routineExercises = [{
+    exerciseId: ex.exerciseId || 1,
+    name: ex.exerciseName || ex.name || 'Custom Exercise',
+    category: ex.category || 'Fitness',
+    sets: ex.sets || 3,
+    reps: ex.repetitions || 12,
+    seconds: ex.durationSeconds || ex.duration || 45,
+    caloriesBurn: ex.caloriesBurn || 35,
+    instructions: ex.instructions || 'Maintain steady rhythm and proper posture.'
+  }];
+  playerIndex = 0;
+  currentSetNumber = 1;
+  switchTab('player', document.querySelectorAll('.tab-btn')[1]);
+  showToast(`Loaded "${ex.exerciseName || ex.name}" into Game Arena! 🎮`, 'success');
+}
+
+async function startRecommendedInGame() {
+  try {
+    const recs = await Workout.recommend();
+    if (recs && recs.length > 0) {
+      routineExercises = recs.map(ex => ({
+        exerciseId: ex.exerciseId,
+        name: ex.exerciseName || ex.name,
+        category: ex.category,
+        sets: ex.sets || 3,
+        reps: ex.repetitions || 12,
+        seconds: ex.durationSeconds || ex.duration || 45,
+        caloriesBurn: ex.caloriesBurn || 35,
+        instructions: ex.instructions || 'Maintain consistent tempo.'
+      }));
+    }
+    playerIndex = 0;
+    currentSetNumber = 1;
+    switchTab('player', document.querySelectorAll('.tab-btn')[1]);
+    showToast('Loaded all recommended routines into Game Arena! 🚀', 'success');
+  } catch(e) {
+    showToast(e.message, 'error');
+  }
+}
+
+async function openPlanModal(planId) {
+  currentPlanId = planId;
+  try {
+    const plans = await Workout.getPlans();
+    const plan = plans.find(p => p.planId === planId) || plans[0];
+    document.getElementById('modalPlanTitle').textContent = plan.title;
+    document.getElementById('modalPlanDesc').textContent = plan.description;
+    
+    const exercises = await Workout.getExercises(planId);
+    document.getElementById('modalPlanExercises').innerHTML = exercises.map(ex => `
+      <div class="exercise-item">
+        <div>
+          <div style="font-weight:700;font-size:.9rem">${ex.exerciseName}</div>
+          <div style="font-size:.78rem;color:var(--text-muted)">${ex.targetMuscle} · ${ex.sets} sets x ${ex.reps} reps</div>
+        </div>
+        <span style="color:var(--gold);font-weight:700;font-size:.85rem">~${(ex.caloriesBurnedPerMin || 8) * 15} kcal</span>
+      </div>`).join('') || '<p style="color:var(--text-muted)">Routine exercise set.</p>';
+    
+    document.getElementById('planModal').style.display = 'flex';
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function startWorkoutFromModal() {
+  closeModal('planModal');
+  try {
+    const exercises = await Workout.getExercises(currentPlanId);
+    if (exercises && exercises.length > 0) {
+      routineExercises = exercises.map(ex => ({
+        exerciseId: ex.exerciseId,
+        name: ex.exerciseName,
+        category: ex.targetMuscle || 'Cardio',
+        sets: ex.sets || 3,
+        reps: ex.reps || 12,
+        seconds: 45,
+        caloriesBurn: (ex.caloriesBurnedPerMin || 8) * 4,
+        instructions: `Focus on form and squeeze ${ex.targetMuscle}.`
+      }));
+    }
+    playerIndex = 0;
+    currentSetNumber = 1;
+    switchTab('player', document.querySelectorAll('.tab-btn')[1]);
+    showToast('Workout plan loaded into Game Arena! 🏋️', 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function openCreatePlanModal() {
+  document.getElementById('createPlanModal').style.display = 'flex';
+}
+
+async function submitCreatePlan() {
+  const title = document.getElementById('newPlanTitle').value.trim();
+  const targetGoal = document.getElementById('newPlanGoal').value;
+  const durationWeeks = parseInt(document.getElementById('newPlanWeeks').value) || 4;
+  const estimatedCaloriesBurn = parseInt(document.getElementById('newPlanCalories').value) || 350;
+  const description = document.getElementById('newPlanDesc').value.trim() || 'Custom workout routine';
+
+  if (!title) { showToast('Please enter a plan title', 'error'); return; }
+  try {
+    await Workout.createPlan({ title, targetGoal, durationWeeks, estimatedCaloriesBurn, description });
+    showToast('Custom workout plan created! 💪', 'success');
+    closeModal('createPlanModal');
+    document.getElementById('newPlanTitle').value = '';
+    document.getElementById('newPlanDesc').value = '';
+    loadPlans();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function finishSession() {
+  try {
+    if (currentSessionId) {
+      await Workout.completeSession(currentSessionId, 'COMPLETED');
+    }
+    showToast('Workout session finished & stored in Reports! 🏆', 'success');
+    document.getElementById('activeSessionBanner').style.display = 'none';
+    currentSessionId = null;
+    switchTab('history', document.querySelectorAll('.tab-btn')[2]);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function loadHistory() {
+  try {
+    const sessions = await Workout.getSessions();
+    const container = document.getElementById('historyList');
+    if (!sessions || sessions.length === 0) {
+      container.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem">No workout sessions recorded yet.</p>';
+      return;
+    }
+    container.innerHTML = sessions.map(s => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:.8rem 0;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-weight:700">${s.planTitle || 'Workout Session'}</div>
+          <div style="font-size:.78rem;color:var(--text-muted)">Date: ${s.sessionDate || 'Today'} · Status: <span style="color:var(--ac-green)">${s.status || 'COMPLETED'}</span></div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-weight:800;color:var(--gold)">🔥 ${s.actualCalories || 320} kcal burned</div>
+        </div>
+      </div>`).join('');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
+
+async function logoutUser() {
+  try { await Auth.logout(); } catch {}
+  localStorage.removeItem('currentUser');
+  window.location.href = 'login.html';
+}
+
+// Initial bootstrap
+(async () => {
+  try {
+    currentUserData = await Auth.me();
+    if (currentUserData && currentUserData.gender) {
+      const g = currentUserData.gender.toLowerCase();
+      if (g.includes('female') || g.includes('woman') || g.includes('girl')) {
+        coachGender = 'Female';
+      } else {
+        coachGender = 'Male';
+      }
+    }
+  } catch {}
+  loadPlans();
+})();
+</script>
+</body>
+</html>

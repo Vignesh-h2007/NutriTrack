@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Profile — NutriTrack</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    .app-layout { display:grid; grid-template-columns:220px 1fr; min-height:100vh; }
+    .app-sidebar { background:var(--bg2); border-right:1px solid var(--border); padding:1.25rem .75rem; display:flex; flex-direction:column; position:sticky; top:0; height:100vh; overflow-y:auto; }
+    .s-logo { display:flex; align-items:center; gap:.6rem; margin-bottom:2rem; padding:.25rem .5rem; }
+    .s-logo .s-icon { width:36px; height:36px; background:linear-gradient(135deg,var(--ac-green),var(--dk-green)); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+    .s-logo span { font-family:'Outfit',sans-serif; font-weight:800; font-size:1.1rem; }
+    .nav-section { margin-bottom:1.25rem; }
+    .nav-section-label { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--text-dim); padding:0 .6rem; margin-bottom:.4rem; }
+    .nav-item { display:flex; align-items:center; gap:.65rem; padding:.55rem .7rem; border-radius:10px; color:var(--text-muted); font-size:.875rem; font-weight:500; transition:all .2s; margin-bottom:2px; cursor:pointer; text-decoration:none; }
+    .nav-item:hover { background:var(--card); color:var(--text); }
+    .nav-item.active { background:rgba(76,139,74,.15); color:var(--ac-green); }
+    .nav-item .ni { font-size:1rem; width:18px; text-align:center; }
+    .sidebar-bottom { margin-top:auto; border-top:1px solid var(--border); padding-top:.75rem; }
+    .user-pill { display:flex; align-items:center; gap:.65rem; padding:.6rem .7rem; border-radius:12px; cursor:pointer; transition:background .2s; }
+    .user-pill:hover { background:var(--card); }
+    .user-avatar { width:36px; height:36px; min-width:36px; min-height:36px; max-width:36px; max-height:36px; border-radius:50%; background:var(--dk-green); display:flex; align-items:center; justify-content:center; font-size:.95rem; font-weight:700; color:var(--ac-green); overflow:hidden; flex-shrink:0; border:2px solid rgba(76,139,74,.4); }
+    .user-avatar img { width:100% !important; height:100% !important; max-width:100% !important; max-height:100% !important; border-radius:50% !important; object-fit:cover !important; display:block !important; aspect-ratio:1/1; }
+    .user-info { flex:1; min-width:0; overflow:hidden; }
+    .user-name { font-size:.85rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .user-goal { font-size:.72rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+    .app-main { padding:1.75rem; overflow-y:auto; }
+    .page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; }
+
+    .profile-hero { display:flex; align-items:center; gap:1.5rem; background:var(--card); border:1px solid var(--border); border-radius:20px; padding:1.5rem; margin-bottom:1.5rem; box-shadow:var(--shadow); }
+    .big-avatar { width:72px; height:72px; border-radius:50%; background:var(--dk-green); color:var(--ac-green); display:flex; align-items:center; justify-content:center; font-size:2rem; font-weight:800; border:2px solid var(--ac-green); flex-shrink:0; }
+    
+    .profile-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+    @media(max-width:900px) { .profile-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <!-- Sidebar -->
+  <aside class="app-sidebar">
+    <div class="s-logo"><div class="s-icon">🥗</div><span>NutriTrack</span></div>
+    <div class="nav-section">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-item"><span class="ni">🏠</span> Dashboard</a>
+      <a href="food.html" class="nav-item"><span class="ni">🥗</span> Food & Meals</a>
+      <a href="workout.html" class="nav-item"><span class="ni">💪</span> Workouts</a>
+      <a href="water.html" class="nav-item"><span class="ni">💧</span> Water Tracker</a>
+      <a href="weight.html" class="nav-item"><span class="ni">⚖️</span> Weight</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Insights & System</div>
+      <a href="reports.html" class="nav-item"><span class="ni">📊</span> Reports</a>
+      <a href="profile.html" class="nav-item active"><span class="ni">👤</span> Profile</a>
+      <a href="settings.html" class="nav-item"><span class="ni">⚙️</span> Settings</a>
+      <a href="about.html" class="nav-item"><span class="ni">ℹ️</span> About Project</a>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="user-pill" onclick="window.location.href='profile.html'">
+        <div class="user-avatar" id="sideAvatar">U</div>
+        <div class="user-info">
+          <div class="user-name" id="sideUserName">Loading…</div>
+          <div class="user-goal" id="sideGoal">—</div>
+        </div>
+      </div>
+      <div class="nav-item" style="margin-top:.25rem;color:var(--red)" onclick="logoutUser()">
+        <span class="ni">🚪</span> Log Out
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="app-main">
+    <div class="page-header">
+      <div>
+        <h1>User Profile & Settings</h1>
+        <p style="color:var(--text-muted);font-size:.875rem">Manage your personal metrics, health goals, and security preferences.</p>
+      </div>
+    </div>
+
+    <!-- Hero Header with Avatar Management -->
+    <div class="profile-hero">
+      <div class="avatar-container" onclick="openCropUpload()" title="Click to upload and crop profile photo">
+        <div class="big-avatar" id="pAvatar">U</div>
+        <div class="avatar-badge-btn" title="Change photo">📷</div>
+      </div>
+      <div>
+        <h2 style="font-size:1.4rem;margin-bottom:.2rem" id="pName">Loading...</h2>
+        <p style="color:var(--text-muted);font-size:.875rem" id="pEmail">—</p>
+        <div style="margin-top:.5rem;display:flex;gap:.5rem;flex-wrap:wrap">
+          <span class="badge" style="background:rgba(76,139,74,.15);color:var(--ac-green);padding:.25rem .75rem;border-radius:6px;font-size:.78rem;font-weight:700" id="pGoalBadge">Goal</span>
+          <span class="badge" style="background:rgba(229,194,0,.15);color:var(--gold);padding:.25rem .75rem;border-radius:6px;font-size:.78rem;font-weight:700" id="pActivityBadge">Activity</span>
+        </div>
+        <div class="avatar-actions-row">
+          <button type="button" class="avatar-action-btn" onclick="openCropUpload()">
+            <span>📷</span> Upload & Crop
+          </button>
+          <button type="button" class="avatar-action-btn" onclick="openPresetAvatarModal()">
+            <span>🎨</span> Pick Preset
+          </button>
+          <button type="button" class="avatar-action-btn btn-danger" id="btnRemoveAvatar" onclick="removeAvatar()" style="display:none">
+            <span>🗑️</span> Remove
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <input type="file" id="profileFileInput" accept="image/*" style="display:none" onchange="handleFileSelected(event)"/>
+
+    <div class="profile-grid">
+      <!-- Edit Health Profile -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">⚙️ Update Personal Metrics</span></div>
+        
+        <div class="form-group">
+          <label>Full Name</label>
+          <input class="form-control" type="text" id="editName" placeholder="Your Name"/>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input class="form-control" type="email" id="editEmail" placeholder="you@example.com"/>
+        </div>
+        <div class="form-group">
+          <label>Age (years)</label>
+          <input class="form-control" type="number" id="editAge"/>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="form-group">
+            <label>Height (cm)</label>
+            <input class="form-control" type="number" step="0.1" id="editHeight" oninput="autoUpdateWaterAdvice()"/>
+          </div>
+          <div class="form-group">
+            <label>Weight (kg)</label>
+            <input class="form-control" type="number" step="0.1" id="editWeight" oninput="autoUpdateWaterAdvice()"/>
+          </div>
+        </div>
+
+        <!-- Water Target Customization Field -->
+        <div class="form-group">
+          <label style="display:flex;justify-content:space-between;align-items:center">
+            <span>💧 Daily Water Goal (ml)</span>
+            <span id="waterAdviceText" style="font-weight:500;font-size:0.75rem;color:var(--blue)">~35ml per kg</span>
+          </label>
+          <div style="display:flex;gap:0.5rem">
+            <input class="form-control" type="number" step="50" min="500" max="250000" id="editWaterTarget" placeholder="e.g. 100000"/>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="calcRecommendedWater()" style="white-space:nowrap;font-size:0.78rem">⚡ Auto-Calc</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Activity Level</label>
+          <select class="form-control" id="editActivity">
+            <option value="SEDENTARY">Sedentary (Little or no exercise)</option>
+            <option value="LIGHT">Lightly Active (1-3 days/wk)</option>
+            <option value="MODERATE">Moderately Active (3-5 days/wk)</option>
+            <option value="VERY_ACTIVE">Very Active (6-7 days/wk)</option>
+            <option value="EXTRA_ACTIVE">Extra Active (Physical job)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Health Goal</label>
+          <select class="form-control" id="editGoal">
+            <option value="WEIGHT_LOSS">Weight Loss</option>
+            <option value="MUSCLE_GAIN">Muscle Gain</option>
+            <option value="MAINTENANCE">Maintenance</option>
+            <option value="IMPROVED_FITNESS">Improved Fitness</option>
+            <option value="HEALTH_RECOVERY">Health Recovery</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label style="font-weight:700">Medical Conditions & Health Profile</label>
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-top:.3rem">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;font-size:.85rem">
+              <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer">
+                <input type="checkbox" class="p-med-cb" value="1"/> Heart condition
+              </label>
+              <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer">
+                <input type="checkbox" class="p-med-cb" value="2"/> High blood pressure
+              </label>
+              <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer">
+                <input type="checkbox" class="p-med-cb" value="3"/> Diabetes
+              </label>
+              <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer">
+                <input type="checkbox" class="p-med-cb" value="9"/> Obesity
+              </label>
+              <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer">
+                <input type="checkbox" class="p-med-cb" value="5"/> Kidney condition
+              </label>
+              <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer">
+                <input type="checkbox" class="p-med-cb" value="6"/> Thyroid condition
+              </label>
+              <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer">
+                <input type="checkbox" class="p-med-cb" value="4"/> Asthma
+              </label>
+              <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer">
+                <input type="checkbox" class="p-med-cb" value="7"/> Joint problems
+              </label>
+              <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer">
+                <input type="checkbox" class="p-med-cb" value="8"/> Back problems
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" style="margin-top:.5rem;width:100%" onclick="saveProfile()">Save Profile Changes</button>
+      </div>
+
+      <!-- Password & Account Security -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">🔒 Security & Account</span></div>
+        
+        <div class="form-group">
+          <label>Current Password</label>
+          <input class="form-control" type="password" id="currPass" placeholder="••••••••"/>
+        </div>
+        <div class="form-group">
+          <label>New Password</label>
+          <input class="form-control" type="password" id="newPass" placeholder="Min 6 characters"/>
+        </div>
+        <div class="form-group">
+          <label>Confirm New Password</label>
+          <input class="form-control" type="password" id="confirmPass" placeholder="Repeat new password"/>
+        </div>
+
+        <button class="btn btn-secondary" style="margin-top:.5rem;width:100%" onclick="changePassword()">Update Password</button>
+
+        <hr style="border-color:var(--border);margin:1.5rem 0"/>
+
+        <div style="font-size:.85rem;color:var(--text-muted)">
+          <div style="font-weight:700;color:var(--text);margin-bottom:.25rem">System Info</div>
+          Registered email and body metrics are used to calculate your BMR, TDEE, and daily target calories.
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Modal: Interactive Image Cropper -->
+<div id="cropModal" class="app-modal-backdrop">
+  <div class="app-modal" style="max-width:500px">
+    <div class="modal-header">
+      <div class="modal-title"><span>✂️</span> Crop & Adjust Profile Photo</div>
+      <button class="modal-close-btn" onclick="closeCropModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.84rem;color:var(--text-muted);margin-bottom:0.75rem">
+        Drag image to position inside the circular frame. Use the slider or mouse wheel to zoom.
+      </p>
+
+      <!-- Workspace Area -->
+      <div class="cropper-workspace" id="cropperWorkspace">
+        <canvas id="cropCanvas" class="cropper-canvas" width="460" height="320"></canvas>
+        <div class="crop-mask-overlay"></div>
+      </div>
+
+      <!-- Controls -->
+      <div class="cropper-controls">
+        <div class="cropper-toolbar-row">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="adjustZoom(-0.2)" title="Zoom Out">🔍−</button>
+          <div class="zoom-slider-wrap">
+            <span style="font-size:0.75rem;color:var(--text-dim)">Zoom</span>
+            <input type="range" id="cropZoomSlider" min="0.5" max="3.5" step="0.05" value="1" oninput="onZoomSliderChange(this.value)"/>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="adjustZoom(0.2)" title="Zoom In">🔍+</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="rotateCropImage()" title="Rotate 90 degrees">🔄 90°</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="resetCropTransform()" title="Center & Fit">🎯 Reset</button>
+        </div>
+
+        <!-- Live Preview -->
+        <div class="crop-preview-box">
+          <div class="crop-preview-circle">
+            <canvas id="cropPreviewCanvas" width="104" height="104"></canvas>
+          </div>
+          <div>
+            <div style="font-size:0.85rem;font-weight:700">Live Avatar Preview</div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">High-resolution circular crop preview</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeCropModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="applyAndSaveCrop()">✨ Crop & Save Photo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Preset Avatar Picker -->
+<div id="presetModal" class="app-modal-backdrop">
+  <div class="app-modal" style="max-width:440px">
+    <div class="modal-header">
+      <div class="modal-title"><span>🎨</span> Choose a Profile Avatar</div>
+      <button class="modal-close-btn" onclick="closePresetModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.85rem;color:var(--text-muted)">Select a themed fitness & wellness icon for your avatar:</p>
+      <div class="preset-avatars-grid" id="presetAvatarsContainer"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closePresetModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="js/api.js"></script>
+<script>
+let userObj = null;
+
+const goalLabels = {
+  WEIGHT_LOSS: 'Weight Loss',
+  MUSCLE_GAIN: 'Muscle Gain',
+  MAINTENANCE: 'Maintenance',
+  IMPROVED_FITNESS: 'Improved Fitness',
+  HEALTH_RECOVERY: 'Health Recovery'
+};
+
+const PRESET_EMOJIS = [
+  { emoji: '🏃', bg: '#2C3F2D' },
+  { emoji: '🏋️', bg: '#1E2B37' },
+  { emoji: '🥗', bg: '#263b27' },
+  { emoji: '🥑', bg: '#2f4228' },
+  { emoji: '🧘', bg: '#372a44' },
+  { emoji: '🚴', bg: '#1c343b' },
+  { emoji: '🥊', bg: '#402323' },
+  { emoji: '🍎', bg: '#3f2121' },
+  { emoji: '⚡', bg: '#3d371b' },
+  { emoji: '💧', bg: '#1c2f42' },
+  { emoji: '🥇', bg: '#3a341b' },
+  { emoji: '🧗', bg: '#2c372b' },
+  { emoji: '🍉', bg: '#3b222a' },
+  { emoji: '🥦', bg: '#233824' },
+  { emoji: '🎯', bg: '#38202b' }
+];
+
+/* ── Interactive Canvas Cropper State ── */
+let cropImageObj = null;
+let cropState = {
+  zoom: 1.0,
+  minZoom: 0.5,
+  maxZoom: 3.5,
+  rotation: 0,
+  panX: 0,
+  panY: 0,
+  isDragging: false,
+  dragStartX: 0,
+  dragStartY: 0
+};
+
+const cropCanvas = document.getElementById('cropCanvas');
+const cropCtx = cropCanvas.getContext('2d');
+const previewCanvas = document.getElementById('cropPreviewCanvas');
+const previewCtx = previewCanvas.getContext('2d');
+const CROP_DIAMETER = 220; // Viewport circle diameter in px
+
+async function loadProfile() {
+  try {
+    userObj = await Auth.me();
+    if (!userObj) return;
+
+    const displayName = userObj.name || userObj.fullName || 'User';
+    document.getElementById('pName').textContent = displayName;
+    document.getElementById('pEmail').textContent = userObj.email || '—';
+    document.getElementById('pGoalBadge').textContent = goalLabels[userObj.healthGoal] || userObj.healthGoal || 'WEIGHT_LOSS';
+    document.getElementById('pActivityBadge').textContent = userObj.activityLevel || 'MODERATE';
+
+    // Render Avatar
+    renderProfileAvatarDisplay();
+
+    document.getElementById('editName').value = displayName;
+    document.getElementById('editEmail').value = userObj.email || '';
+    document.getElementById('editAge').value = userObj.age || 25;
+    document.getElementById('editHeight').value = userObj.heightCm || 170;
+    document.getElementById('editWeight').value = userObj.weightKg || 70;
+    document.getElementById('editActivity').value = userObj.activityLevel || 'MODERATE';
+    document.getElementById('editGoal').value = userObj.healthGoal || 'WEIGHT_LOSS';
+
+    // Water target
+    const currentWater = localStorage.getItem('nutri_water_target') || userObj.dailyWaterTargetMl || Math.round((userObj.weightKg || 70) * 35);
+    document.getElementById('editWaterTarget').value = currentWater;
+    autoUpdateWaterAdvice();
+
+    // Set medical condition checkboxes
+    const conds = userObj.medicalConditions || [];
+    document.querySelectorAll('.p-med-cb').forEach(cb => {
+      const val = parseInt(cb.value);
+      cb.checked = conds.includes(val) || (typeof conds[0] === 'object' && conds.some(c => c.conditionId === val));
+    });
+
+    renderPresetGrid();
+    setupGlobalUserSidebar();
+  } catch(e) { 
+    showToast('Error loading profile: ' + e.message, 'error'); 
+  }
+}
+
+function renderProfileAvatarDisplay() {
+  const avatar = (userObj && userObj.profileImage) || localStorage.getItem('nutri_user_avatar');
+  const pAvatar = document.getElementById('pAvatar');
+  const btnRemove = document.getElementById('btnRemoveAvatar');
+
+  if (avatar) {
+    pAvatar.innerHTML = `<img src="${avatar}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">`;
+    if (btnRemove) btnRemove.style.display = 'inline-flex';
+  } else {
+    const name = (userObj && (userObj.name || userObj.fullName)) || 'User';
+    pAvatar.textContent = name.charAt(0).toUpperCase();
+    if (btnRemove) btnRemove.style.display = 'none';
+  }
+}
+
+function autoUpdateWaterAdvice() {
+  const w = parseFloat(document.getElementById('editWeight').value) || 70;
+  const rec = Math.round(w * 35);
+  const advice = document.getElementById('waterAdviceText');
+  if (advice) advice.textContent = `~${rec.toLocaleString()} ml recommended (${w}kg × 35ml)`;
+}
+
+function calcRecommendedWater() {
+  const w = parseFloat(document.getElementById('editWeight').value) || 70;
+  const act = document.getElementById('editActivity').value;
+  let bonus = 0;
+  if (act === 'VERY_ACTIVE' || act === 'EXTRA_ACTIVE') bonus = 500;
+  else if (act === 'MODERATE') bonus = 250;
+  
+  const rec = Math.round((w * 35) + bonus);
+  document.getElementById('editWaterTarget').value = rec;
+  showToast(`Auto-calculated target: ${rec.toLocaleString()} ml based on ${w}kg body weight! 💧`, 'info');
+}
+
+async function saveProfile() {
+  const name = document.getElementById('editName').value.trim();
+  const email = document.getElementById('editEmail').value.trim();
+  const age = parseInt(document.getElementById('editAge').value);
+  const heightCm = parseFloat(document.getElementById('editHeight').value);
+  const weightKg = parseFloat(document.getElementById('editWeight').value);
+  const activityLevel = document.getElementById('editActivity').value;
+  const healthGoal = document.getElementById('editGoal').value;
+  const dailyWaterTargetMl = parseInt(document.getElementById('editWaterTarget').value) || 2500;
+
+  if (!name || !email || !age || !heightCm || !weightKg) {
+    showToast('Please fill all required profile fields', 'error');
+    return;
+  }
+
+  const selectedConditions = [];
+  document.querySelectorAll('.p-med-cb:checked').forEach(cb => selectedConditions.push(parseInt(cb.value)));
+
+  try {
+    await User.updateProfile({ 
+      name, email, age, heightCm, weightKg, activityLevel, healthGoal, 
+      dailyWaterTargetMl, 
+      medicalConditions: selectedConditions 
+    });
+    // Sync water goal
+    await Track.setWaterGoal(dailyWaterTargetMl);
+    showToast('Profile and hydration metrics updated successfully! 🎉', 'success');
+    loadProfile();
+  } catch(e) { 
+    showToast(e.message, 'error'); 
+  }
+}
+
+async function changePassword() {
+  const currPass = document.getElementById('currPass').value;
+  const newPass = document.getElementById('newPass').value;
+  const confirmPass = document.getElementById('confirmPass').value;
+
+  if (!currPass || !newPass) { showToast('Enter current and new password', 'error'); return; }
+  if (newPass !== confirmPass) { showToast('New passwords do not match', 'error'); return; }
+  if (newPass.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
+
+  try {
+    await User.changePassword({ currentPassword: currPass, newPassword: newPass });
+    showToast('Password changed successfully!', 'success');
+    document.getElementById('currPass').value = '';
+    document.getElementById('newPass').value = '';
+    document.getElementById('confirmPass').value = '';
+  } catch(e) { 
+    showToast(e.message, 'error'); 
+  }
+}
+
+/* ── Avatar Management & Interactive Cropper ── */
+function openCropUpload() {
+  const fileInput = document.getElementById('profileFileInput');
+  fileInput.value = '';
+  fileInput.click();
+}
+
+function handleFileSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    showToast('Please choose a valid image file (PNG, JPG, WEBP, etc.)', 'error');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      initCropperWithImage(img);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function initCropperWithImage(img) {
+  cropImageObj = img;
+  cropState.rotation = 0;
+  cropState.panX = 0;
+  cropState.panY = 0;
+
+  // Compute best initial zoom to fit within crop circle
+  const minDim = Math.min(img.width, img.height);
+  cropState.zoom = Math.max(1, (CROP_DIAMETER / minDim) * 1.15);
+  cropState.minZoom = Math.min(0.3, cropState.zoom * 0.4);
+  cropState.maxZoom = cropState.zoom * 3.5;
+
+  const slider = document.getElementById('cropZoomSlider');
+  if (slider) {
+    slider.min = cropState.minZoom;
+    slider.max = cropState.maxZoom;
+    slider.value = cropState.zoom;
+  }
+
+  document.getElementById('cropModal').classList.add('active');
+  renderCropCanvas();
+}
+
+function closeCropModal() {
+  document.getElementById('cropModal').classList.remove('active');
+}
+
+function renderCropCanvas() {
+  if (!cropImageObj) return;
+
+  const cw = cropCanvas.width;
+  const ch = cropCanvas.height;
+  cropCtx.clearRect(0, 0, cw, ch);
+
+  // Background checkerboard/dark tone
+  cropCtx.fillStyle = '#0a0d0a';
+  cropCtx.fillRect(0, 0, cw, ch);
+
+  // Save state for image transforms
+  cropCtx.save();
+  // Transform around center
+  cropCtx.translate((cw / 2) + cropState.panX, (ch / 2) + cropState.panY);
+  cropCtx.rotate((cropState.rotation * Math.PI) / 180);
+  cropCtx.scale(cropState.zoom, cropState.zoom);
+
+  const iw = cropImageObj.width;
+  const ih = cropImageObj.height;
+  cropCtx.drawImage(cropImageObj, -iw / 2, -ih / 2, iw, ih);
+  cropCtx.restore();
+
+  renderLivePreview();
+}
+
+function renderLivePreview() {
+  if (!cropImageObj) return;
+
+  const pw = previewCanvas.width;
+  const ph = previewCanvas.height;
+  previewCtx.clearRect(0, 0, pw, ph);
+
+  // Circular clipping mask
+  previewCtx.save();
+  previewCtx.beginPath();
+  previewCtx.arc(pw / 2, ph / 2, pw / 2, 0, Math.PI * 2);
+  previewCtx.clip();
+
+  // Draw scaled from workspace crop center
+  const scale = pw / CROP_DIAMETER;
+  const cw = cropCanvas.width;
+  const ch = cropCanvas.height;
+
+  previewCtx.translate((pw / 2) + (cropState.panX * scale), (ph / 2) + (cropState.panY * scale));
+  previewCtx.rotate((cropState.rotation * Math.PI) / 180);
+  previewCtx.scale(cropState.zoom * scale, cropState.zoom * scale);
+
+  const iw = cropImageObj.width;
+  const ih = cropImageObj.height;
+  previewCtx.drawImage(cropImageObj, -iw / 2, -ih / 2, iw, ih);
+  previewCtx.restore();
+}
+
+function onZoomSliderChange(val) {
+  cropState.zoom = parseFloat(val);
+  renderCropCanvas();
+}
+
+function adjustZoom(delta) {
+  let newZoom = cropState.zoom + delta;
+  newZoom = Math.max(cropState.minZoom, Math.min(cropState.maxZoom, newZoom));
+  cropState.zoom = newZoom;
+  const slider = document.getElementById('cropZoomSlider');
+  if (slider) slider.value = newZoom;
+  renderCropCanvas();
+}
+
+function rotateCropImage() {
+  cropState.rotation = (cropState.rotation + 90) % 360;
+  renderCropCanvas();
+}
+
+function resetCropTransform() {
+  cropState.panX = 0;
+  cropState.panY = 0;
+  cropState.rotation = 0;
+  if (cropImageObj) {
+    const minDim = Math.min(cropImageObj.width, cropImageObj.height);
+    cropState.zoom = Math.max(1, (CROP_DIAMETER / minDim) * 1.15);
+  } else {
+    cropState.zoom = 1;
+  }
+  const slider = document.getElementById('cropZoomSlider');
+  if (slider) slider.value = cropState.zoom;
+  renderCropCanvas();
+}
+
+// Drag & Pan Interaction Handlers
+const workspace = document.getElementById('cropperWorkspace');
+
+workspace.addEventListener('mousedown', (e) => {
+  cropState.isDragging = true;
+  cropState.dragStartX = e.clientX - cropState.panX;
+  cropState.dragStartY = e.clientY - cropState.panY;
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (!cropState.isDragging) return;
+  cropState.panX = e.clientX - cropState.dragStartX;
+  cropState.panY = e.clientY - cropState.dragStartY;
+  renderCropCanvas();
+});
+
+window.addEventListener('mouseup', () => {
+  cropState.isDragging = false;
+});
+
+// Touch support for mobile/tablets
+workspace.addEventListener('touchstart', (e) => {
+  if (e.touches.length === 1) {
+    cropState.isDragging = true;
+    cropState.dragStartX = e.touches[0].clientX - cropState.panX;
+    cropState.dragStartY = e.touches[0].clientY - cropState.panY;
+  }
+}, { passive: true });
+
+workspace.addEventListener('touchmove', (e) => {
+  if (!cropState.isDragging || e.touches.length !== 1) return;
+  cropState.panX = e.touches[0].clientX - cropState.dragStartX;
+  cropState.panY = e.touches[0].clientY - cropState.dragStartY;
+  renderCropCanvas();
+}, { passive: true });
+
+workspace.addEventListener('touchend', () => {
+  cropState.isDragging = false;
+});
+
+// Wheel zoom
+workspace.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const delta = e.deltaY < 0 ? 0.1 : -0.1;
+  adjustZoom(delta);
+}, { passive: false });
+
+/* ── Apply Crop & Export ── */
+async function applyAndSaveCrop() {
+  if (!cropImageObj) return;
+
+  // Render high-res crisp avatar (256x256 px)
+  const exportCanvas = document.createElement('canvas');
+  exportCanvas.width = 256;
+  exportCanvas.height = 256;
+  const expCtx = exportCanvas.getContext('2d');
+
+  // Anti-aliased high quality image rendering
+  expCtx.imageSmoothingEnabled = true;
+  expCtx.imageSmoothingQuality = 'high';
+
+  // Circular clip
+  expCtx.beginPath();
+  expCtx.arc(128, 128, 128, 0, Math.PI * 2);
+  expCtx.clip();
+
+  const scale = 256 / CROP_DIAMETER;
+  expCtx.translate(128 + (cropState.panX * scale), 128 + (cropState.panY * scale));
+  expCtx.rotate((cropState.rotation * Math.PI) / 180);
+  expCtx.scale(cropState.zoom * scale, cropState.zoom * scale);
+
+  const iw = cropImageObj.width;
+  const ih = cropImageObj.height;
+  expCtx.drawImage(cropImageObj, -iw / 2, -ih / 2, iw, ih);
+
+  const croppedDataUrl = exportCanvas.toDataURL('image/jpeg', 0.92);
+
+  try {
+    await User.updateAvatar(croppedDataUrl);
+    if (userObj) userObj.profileImage = croppedDataUrl;
+    renderProfileAvatarDisplay();
+    setupGlobalUserSidebar();
+    closeCropModal();
+    showToast('Profile photo updated successfully! 📸', 'success');
+  } catch(e) {
+    showToast('Failed to save avatar: ' + e.message, 'error');
+  }
+}
+
+/* ── Preset Avatars ── */
+function openPresetAvatarModal() {
+  document.getElementById('presetModal').classList.add('active');
+}
+
+function closePresetModal() {
+  document.getElementById('presetModal').classList.remove('active');
+}
+
+function renderPresetGrid() {
+  const container = document.getElementById('presetAvatarsContainer');
+  if (!container) return;
+  container.innerHTML = PRESET_EMOJIS.map((item, idx) => `
+    <button type="button" class="preset-avatar-btn" style="background:${item.bg}" onclick="selectPresetAvatar('${item.emoji}', '${item.bg}')" title="${item.emoji}">
+      ${item.emoji}
+    </button>
+  `).join('');
+}
+
+async function selectPresetAvatar(emoji, bg) {
+  // Generate crisp canvas image with selected emoji & background
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = bg || '#2C3F2D';
+  ctx.beginPath();
+  ctx.arc(128, 128, 128, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.font = '130px "Segoe UI Emoji", "Apple Color Emoji", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(emoji, 128, 138);
+
+  const avatarData = canvas.toDataURL('image/png');
+  try {
+    await User.updateAvatar(avatarData);
+    if (userObj) userObj.profileImage = avatarData;
+    renderProfileAvatarDisplay();
+    setupGlobalUserSidebar();
+    closePresetModal();
+    showToast(`Profile avatar set to ${emoji}! 🎉`, 'success');
+  } catch(e) {
+    showToast('Error applying avatar: ' + e.message, 'error');
+  }
+}
+
+async function removeAvatar() {
+  if (!confirm('Remove profile photo and restore default initials?')) return;
+  try {
+    await User.updateAvatar(null);
+    if (userObj) userObj.profileImage = null;
+    renderProfileAvatarDisplay();
+    setupGlobalUserSidebar();
+    showToast('Profile photo removed.', 'info');
+  } catch(e) {
+    showToast(e.message, 'error');
+  }
+}
+
+async function logoutUser() {
+  try { await Auth.logout(); } catch {}
+  localStorage.removeItem('currentUser');
+  window.location.href = 'login.html';
+}
+
+loadProfile();
+</script>
+</body>
+</html>

@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register — NutriTrack</title>
+  <meta name="description" content="Create your NutriTrack account and get a personalized nutrition plan based on your unique health profile."/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    body { min-height:100vh; background:var(--bg); padding:2rem 1rem; }
+    .auth-wrap { max-width:640px; margin:0 auto; }
+    .auth-logo { text-align:center; margin-bottom:2rem; }
+    .auth-logo .logo-icon { width:56px; height:56px; background:linear-gradient(135deg,var(--ac-green),var(--dk-green)); border-radius:16px; display:inline-flex; align-items:center; justify-content:center; font-size:1.6rem; margin-bottom:.6rem; box-shadow:0 4px 15px rgba(76,139,74,.3); }
+    .auth-logo h2 { font-size:1.9rem; font-weight:800; color:var(--text); margin-bottom:.3rem; letter-spacing:-0.02em; }
+    .auth-logo p { font-size:.9rem; color:var(--text-muted); }
+    .auth-card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:2rem; box-shadow:var(--shadow-lg); }
+    
+    /* Step indicator */
+    .steps-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:2rem; position:relative; }
+    .step-ind { display:flex; align-items:center; flex:1; position:relative; }
+    .step-ind:last-child { flex:none; }
+    .step-dot { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.85rem; font-weight:700; border:2px solid var(--border); color:var(--text-muted); background:var(--bg3); flex-shrink:0; transition:all .3s; }
+    .step-dot.active { border-color:var(--ac-green); color:var(--ac-green); background:rgba(76,139,74,.15); box-shadow:0 0 12px rgba(76,139,74,.3); }
+    .step-dot.done { border-color:var(--ac-green); color:#fff; background:var(--ac-green); }
+    .step-label { font-size:.72rem; color:var(--text-muted); margin-top:.3rem; text-align:center; }
+    .step-line { flex:1; height:2px; background:var(--border); margin:0 .5rem; transition:background .3s; }
+    .step-line.done { background:var(--ac-green); }
+    
+    /* Step contents */
+    .reg-step { display:none; }
+    .reg-step.active { display:block; animation:fadeIn .3s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+    
+    .step-title { margin-bottom:1.5rem; }
+    .step-title h3 { font-size:1.2rem; font-weight:700; margin-bottom:.25rem; color:var(--text); }
+    .step-title p { font-size:.85rem; color:var(--text-muted); }
+    
+    /* Range display */
+    .range-wrap { display:flex; gap:1rem; align-items:center; margin-top:.5rem; }
+    .range-wrap input[type=range] { flex:1; accent-color:var(--ac-green); height:6px; border-radius:3px; }
+    .range-val { background:var(--dk-green); color:var(--ac-green); border-radius:8px; padding:.3rem .75rem; font-weight:700; min-width:75px; text-align:center; font-size:.875rem; }
+    
+    /* Goal selector */
+    .goal-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:.75rem; }
+    .goal-card { border:2px solid var(--border); border-radius:12px; padding:1rem; text-align:center; cursor:pointer; transition:all .2s; background:var(--bg2); }
+    .goal-card:hover { border-color:var(--ac-green); transform:translateY(-2px); }
+    .goal-card.selected { border-color:var(--ac-green); background:rgba(76,139,74,.15); box-shadow:0 0 10px rgba(76,139,74,.2); }
+    .goal-card .g-icon { font-size:1.6rem; margin-bottom:.3rem; }
+    .goal-card h4 { font-size:.85rem; font-weight:700; margin-bottom:.15rem; color:var(--text); }
+    .goal-card p { font-size:.75rem; color:var(--text-muted); }
+    
+    .step-nav { display:flex; gap:1rem; margin-top:1.5rem; }
+    .step-nav .btn { flex:1; justify-content:center; }
+    
+    .pwd-strength { height:4px; border-radius:2px; margin-top:.4rem; background:var(--bg3); transition:all .3s; }
+    .back-btn { display:inline-flex; align-items:center; gap:.4rem; color:var(--text-muted); font-size:.85rem; margin-bottom:1.5rem; }
+    .back-btn:hover { color:var(--text); }
+    #regError { display:none; margin-bottom:1.25rem; }
+    #regSuccess { display:none; margin-bottom:1.25rem; }
+  </style>
+</head>
+<body>
+<div class="auth-wrap">
+  <a href="login.html" class="back-btn">← Already have an account? Sign In</a>
+  
+  <div class="auth-logo">
+    <div class="logo-icon">🥗</div>
+    <h2>Create Your Account</h2>
+    <p>A 3-step setup for your personalized nutrition plan</p>
+  </div>
+
+  <div class="auth-card">
+    <!-- Step Indicator -->
+    <div class="steps-nav">
+      <div class="step-ind">
+        <div style="text-align:center">
+          <div class="step-dot active" id="dot1">1</div>
+          <div class="step-label">Account</div>
+        </div>
+        <div class="step-line" id="line1"></div>
+      </div>
+      <div class="step-ind">
+        <div style="text-align:center">
+          <div class="step-dot" id="dot2">2</div>
+          <div class="step-label">Body Info</div>
+        </div>
+        <div class="step-line" id="line2"></div>
+      </div>
+      <div class="step-ind">
+        <div style="text-align:center">
+          <div class="step-dot" id="dot3">3</div>
+          <div class="step-label">Medical</div>
+        </div>
+        <div class="step-line" id="line3"></div>
+      </div>
+      <div>
+        <div style="text-align:center">
+          <div class="step-dot" id="dot4">4</div>
+          <div class="step-label">Goals</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="regError" class="alert alert-error"></div>
+    <div id="regSuccess" class="alert alert-success"></div>
+
+    <!-- Step 1: Account Info -->
+    <div class="reg-step active" id="step1">
+      <div class="step-title">
+        <h3>Personal Details</h3>
+        <p>Create your login credentials</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="name">Full Name *</label>
+        <input class="form-control" type="text" id="name" placeholder="e.g. Vignesh H" value="Vignesh H" required/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="email">Email Address *</label>
+        <input class="form-control" type="email" id="email" placeholder="you@example.com" value="vigneshharikumar2007@gmail.com" required/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="reg-password">Password *</label>
+        <input class="form-control" type="password" id="reg-password" placeholder="Min 6 characters" value="password123" required/>
+        <div class="pwd-strength" id="pwdStrength" style="width:75%;background:#4c8b4a"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="confirm-password">Confirm Password *</label>
+        <input class="form-control" type="password" id="confirm-password" placeholder="Repeat password" value="password123" required/>
+      </div>
+      <div class="step-nav">
+        <button class="btn btn-primary" onclick="goToStep(2)">Next: Body Info →</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Body Info -->
+    <div class="reg-step" id="step2">
+      <div class="step-title">
+        <h3>Body Information</h3>
+        <p>Used to calculate your daily calorie target and BMI</p>
+      </div>
+      <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div class="form-group">
+          <label class="form-label" for="gender">Gender</label>
+          <select class="form-control" id="gender">
+            <option value="Male" selected>Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="age">Age (years)</label>
+          <input class="form-control" type="number" id="age" value="22" min="10" max="120" required/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Height</label>
+        <div class="range-wrap">
+          <input type="range" id="heightCm" min="100" max="230" value="170" oninput="document.getElementById('heightVal').textContent=this.value"/>
+          <div class="range-val"><span id="heightVal">170</span> cm</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Weight</label>
+        <div class="range-wrap">
+          <input type="range" id="weightKg" min="30" max="200" value="70" oninput="document.getElementById('weightVal').textContent=this.value"/>
+          <div class="range-val"><span id="weightVal">70</span> kg</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="activityLevel">Activity Level</label>
+        <select class="form-control" id="activityLevel">
+          <option value="SEDENTARY">🪑 Sedentary (little or no exercise)</option>
+          <option value="LIGHT">🚶 Lightly Active (1–3 days/week)</option>
+          <option value="MODERATE" selected>🏃 Moderately Active (3–5 days/week)</option>
+          <option value="VERY_ACTIVE">🏋️ Very Active (6–7 days/week)</option>
+          <option value="EXTRA_ACTIVE">⚡ Extra Active (physical job)</option>
+        </select>
+      </div>
+      <div class="step-nav">
+        <button class="btn btn-secondary" onclick="goToStep(1)">← Back</button>
+        <button class="btn btn-primary" onclick="goToStep(3)">Next: Medical Conditions →</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Medical Conditions -->
+    <div class="reg-step" id="step3">
+      <div class="step-title">
+        <h3>Medical & Health Profile</h3>
+        <p>Helps our recommendation system safely filter foods and exercises</p>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" style="font-weight:700">Do you have any health or medical condition?</label>
+        <div style="display:flex;gap:1.5rem;margin-top:.5rem">
+          <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-weight:600">
+            <input type="radio" name="hasCondition" value="NO" checked onchange="toggleMedicalList(false)"/> No, I am in good health
+          </label>
+          <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-weight:600;color:var(--gold)">
+            <input type="radio" name="hasCondition" value="YES" onchange="toggleMedicalList(true)"/> Yes, I have medical conditions
+          </label>
+        </div>
+      </div>
+
+      <div id="medicalConditionsContainer" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem">
+        <label class="form-label" style="font-weight:700;margin-bottom:.75rem">Select your medical condition(s):</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.65rem;font-size:.875rem">
+          <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+            <input type="checkbox" class="med-cb" value="1"/> Heart-related condition
+          </label>
+          <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+            <input type="checkbox" class="med-cb" value="2"/> High blood pressure
+          </label>
+          <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+            <input type="checkbox" class="med-cb" value="3"/> Diabetes
+          </label>
+          <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+            <input type="checkbox" class="med-cb" value="9"/> Obesity
+          </label>
+          <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+            <input type="checkbox" class="med-cb" value="5"/> Kidney-related condition
+          </label>
+          <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+            <input type="checkbox" class="med-cb" value="6"/> Thyroid condition
+          </label>
+          <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+            <input type="checkbox" class="med-cb" value="4"/> Asthma
+          </label>
+          <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+            <input type="checkbox" class="med-cb" value="7"/> Joint problems
+          </label>
+          <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+            <input type="checkbox" class="med-cb" value="8"/> Back problems
+          </label>
+        </div>
+        <div style="margin-top:1rem">
+          <label class="form-label">Other condition details (optional)</label>
+          <input class="form-control" type="text" id="otherMedicalNotes" placeholder="Specify any other medical condition or dietary allergy..."/>
+        </div>
+      </div>
+
+      <div class="step-nav">
+        <button class="btn btn-secondary" onclick="goToStep(2)">← Back</button>
+        <button class="btn btn-primary" onclick="goToStep(4)">Next: Health Goal →</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Health Goal -->
+    <div class="reg-step" id="step4">
+      <div class="step-title">
+        <h3>Your Health Goal</h3>
+        <p>Personalizes food and exercise recommendations for your targets</p>
+      </div>
+      <div class="goal-grid">
+        <div class="goal-card selected" data-goal="WEIGHT_LOSS" onclick="selectGoal(this)">
+          <div class="g-icon">⚖️</div>
+          <h4>Weight Loss</h4>
+          <p>Burn fat, calorie deficit target</p>
+        </div>
+        <div class="goal-card" data-goal="MUSCLE_GAIN" onclick="selectGoal(this)">
+          <div class="g-icon">💪</div>
+          <h4>Muscle Gain</h4>
+          <p>High protein, build strength</p>
+        </div>
+        <div class="goal-card" data-goal="MAINTENANCE" onclick="selectGoal(this)">
+          <div class="g-icon">⚡</div>
+          <h4>Maintenance</h4>
+          <p>Maintain healthy balance</p>
+        </div>
+        <div class="goal-card" data-goal="IMPROVED_FITNESS" onclick="selectGoal(this)">
+          <div class="g-icon">🏃</div>
+          <h4>Fitness</h4>
+          <p>Endurance and stamina</p>
+        </div>
+        <div class="goal-card" data-goal="HEALTH_RECOVERY" onclick="selectGoal(this)">
+          <div class="g-icon">❤️</div>
+          <h4>Recovery</h4>
+          <p>Health condition management</p>
+        </div>
+      </div>
+      <div class="step-nav" style="margin-top:2rem">
+        <button class="btn btn-secondary" onclick="goToStep(2)">← Back</button>
+        <button class="btn btn-primary" id="submitBtn" onclick="submitRegister()">🎉 Create Account</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+let currentStep = 1;
+let selectedGoal = 'WEIGHT_LOSS';
+
+function toggleMedicalList(show) {
+  document.getElementById('medicalConditionsContainer').style.display = show ? 'block' : 'none';
+}
+
+function goToStep(n) {
+  if (n > currentStep && !validateStep(currentStep)) return;
+  document.getElementById('step' + currentStep).classList.remove('active');
+  document.getElementById('step' + n).classList.add('active');
+
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById('dot' + i);
+    dot.classList.remove('active','done');
+    if (i < n) { dot.classList.add('done'); dot.textContent = '✓'; }
+    else if (i === n) { dot.classList.add('active'); dot.textContent = i; }
+    else { dot.textContent = i; }
+  }
+  for (let i = 1; i <= 3; i++) {
+    const line = document.getElementById('line' + i);
+    if (i < n) line.classList.add('done'); else line.classList.remove('done');
+  }
+  currentStep = n;
+  document.getElementById('regError').style.display = 'none';
+}
+
+function validateStep(n) {
+  const err = document.getElementById('regError');
+  err.style.display = 'none';
+  if (n === 1) {
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const pwd = document.getElementById('reg-password').value;
+    const cpwd = document.getElementById('confirm-password').value;
+    if (!name) { showErr('Please enter your full name.'); return false; }
+    if (!email || !email.includes('@')) { showErr('Please enter a valid email address.'); return false; }
+    if (pwd.length < 6) { showErr('Password must be at least 6 characters.'); return false; }
+    if (pwd !== cpwd) { showErr('Passwords do not match.'); return false; }
+  }
+  return true;
+}
+
+function showErr(msg) {
+  const err = document.getElementById('regError');
+  err.style.display = 'block';
+  err.textContent = '⚠️ ' + msg;
+}
+
+document.getElementById('reg-password').addEventListener('input', function() {
+  const bar = document.getElementById('pwdStrength');
+  const len = this.value.length;
+  const colors = ['#e05555','#e08040','#e5c200','#4c8b4a'];
+  const pct = Math.min((len / 12) * 100, 100);
+  bar.style.width = pct + '%';
+  bar.style.background = len < 6 ? colors[0] : len < 8 ? colors[1] : len < 10 ? colors[2] : colors[3];
+});
+
+function selectGoal(el) {
+  document.querySelectorAll('.goal-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedGoal = el.dataset.goal;
+}
+
+async function submitRegister() {
+  if (!validateStep(1)) { goToStep(1); return; }
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Creating account…';
+
+  const hasCondition = document.querySelector('input[name="hasCondition"]:checked').value === 'YES';
+  const selectedConditions = [];
+  if (hasCondition) {
+    document.querySelectorAll('.med-cb:checked').forEach(cb => selectedConditions.push(parseInt(cb.value)));
+  }
+
+  const data = {
+    name: document.getElementById('name').value.trim(),
+    email: document.getElementById('email').value.trim(),
+    password: document.getElementById('reg-password').value,
+    gender: document.getElementById('gender').value,
+    age: document.getElementById('age').value,
+    heightCm: document.getElementById('heightCm').value,
+    weightKg: document.getElementById('weightKg').value,
+    activityLevel: document.getElementById('activityLevel').value,
+    healthGoal: selectedGoal,
+    hasMedicalCondition: hasCondition,
+    medicalConditions: selectedConditions,
+    otherMedicalNotes: document.getElementById('otherMedicalNotes').value.trim()
+  };
+
+  try {
+    await Auth.register(data);
+    const successEl = document.getElementById('regSuccess');
+    successEl.style.display = 'block';
+    successEl.textContent = '✅ Account created successfully! Redirecting to dashboard…';
+    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+  } catch(e) {
+    showErr(e.message || 'Registration failed.');
+    btn.disabled = false;
+    btn.textContent = '🎉 Create Account';
+  }
+}
+</script>
+</body>
+</html>

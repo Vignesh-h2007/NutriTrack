@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — NutriTrack</title>
+  <meta name="description"
+    content="Your personalized nutrition dashboard — today's calorie, water, workout summary and AI recommendations." />
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .app-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .app-sidebar {
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      padding: 1.25rem .75rem;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 50;
+      width: 220px;
+      box-sizing: border-box;
+    }
+
+    .s-logo {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      margin-bottom: 2rem;
+      padding: .25rem .5rem;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .s-logo .s-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--ac-green), var(--dk-green));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+
+    .s-logo span {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+    }
+
+    .nav-section {
+      margin-bottom: 1.25rem;
+    }
+
+    .nav-section-label {
+      font-size: .68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--text-dim);
+      padding: 0 .6rem;
+      margin-bottom: .4rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      padding: .55rem .7rem;
+      border-radius: 10px;
+      color: var(--text-muted);
+      font-size: .875rem;
+      font-weight: 500;
+      transition: all .2s;
+      margin-bottom: 2px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .nav-item:hover {
+      background: var(--card);
+      color: var(--text);
+    }
+
+    .nav-item.active {
+      background: rgba(76, 139, 74, .18);
+      color: var(--ac-green);
+      font-weight: 600;
+    }
+
+    .nav-item .ni {
+      font-size: 1rem;
+      width: 18px;
+      text-align: center;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      border-top: 1px solid var(--border);
+      padding-top: .75rem;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      padding: .6rem .7rem;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background .2s;
+    }
+
+    .user-pill:hover {
+      background: var(--card);
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      min-height: 36px;
+      max-width: 36px;
+      max-height: 36px;
+      border-radius: 50%;
+      background: var(--dk-green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--ac-green);
+      overflow: hidden;
+      flex-shrink: 0;
+      border: 2px solid rgba(76, 139, 74, .4);
+    }
+
+    .user-avatar img {
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100% !important;
+      max-height: 100% !important;
+      border-radius: 50% !important;
+      object-fit: cover !important;
+      display: block !important;
+      aspect-ratio: 1/1;
+    }
+
+    .user-info {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .user-name {
+      font-size: .85rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-goal {
+      font-size: .72rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Main Area */
+    .app-main {
+      padding: 1.75rem 2rem;
+      overflow-y: auto;
+      min-width: 0;
+    }
+
+    /* Header Bar */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.75rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .header-titles h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: .25rem;
+    }
+
+    .header-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: .85rem;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+
+    .clock-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      padding: 0.25rem 0.65rem;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-family: monospace;
+      color: var(--text);
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--ac-green);
+      box-shadow: 0 0 8px var(--ac-green);
+      animation: pulse-blink 1.8s infinite;
+    }
+
+    @keyframes pulse-blink {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.3;
+        transform: scale(0.85);
+      }
+    }
+
+    /* Stat Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .scard {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.35rem;
+      position: relative;
+      overflow: hidden;
+      transition: all .28s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .scard:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+      border-color: rgba(76, 139, 74, 0.4);
+    }
+
+    .scard-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: .75rem;
+    }
+
+    .scard .sc-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+    }
+
+    .scard-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-muted);
+    }
+
+    .scard .sc-val {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.95rem;
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+
+    .scard .sc-label {
+      font-size: .8rem;
+      color: var(--text-muted);
+      margin-top: .35rem;
+    }
+
+    .scard .sc-progress {
+      margin-top: .9rem;
+    }
+
+    /* Middle Row */
+    .mid-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    /* Macros Donut */
+    .macros-row {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 0.5rem 0;
+    }
+
+    .macro-chart-wrap {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      flex-shrink: 0;
+    }
+
+    .macro-legend {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: .75rem;
+    }
+
+    .ml-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .6rem;
+      font-size: .875rem;
+      padding: 0.35rem 0.6rem;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .ml-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .ml-name {
+      flex: 1;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .ml-val {
+      font-weight: 700;
+    }
+
+    /* ════════════════════════════════════════════════════════
+       250ML WATER GLASSES ARENA & DRINKING VANISH ANIMATION
+       ════════════════════════════════════════════════════════ */
+    .water-section-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.4rem;
+      position: relative;
+    }
+
+    .water-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .water-count-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(85, 136, 221, 0.14);
+      border: 1px solid rgba(85, 136, 221, 0.3);
+      color: var(--blue);
+      padding: 0.25rem 0.65rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .water-glasses-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(68px, 1fr));
+      gap: 0.75rem;
+      margin: 1rem 0;
+      min-height: 95px;
+      align-items: center;
+    }
+
+    /* Realistic 3D Glass of Water */
+    .water-glass-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.35rem;
+      cursor: pointer;
+      padding: 0.55rem 0.3rem;
+      border-radius: 14px;
+      background: rgba(85, 136, 221, 0.06);
+      border: 1px solid rgba(85, 136, 221, 0.2);
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      user-select: none;
+    }
+
+    .water-glass-card:hover {
+      transform: translateY(-6px) scale(1.06);
+      background: rgba(85, 136, 221, 0.18);
+      border-color: var(--blue);
+      box-shadow: 0 8px 24px rgba(85, 136, 221, 0.4);
+    }
+
+    .water-glass-shape {
+      width: 48px;
+      height: 64px;
+      position: relative;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(85, 136, 221, 0.2) 100%);
+      border: 2px solid rgba(185, 220, 255, 0.75);
+      border-top: 3px solid rgba(225, 245, 255, 0.95);
+      border-radius: 3px 3px 12px 12px;
+      overflow: hidden;
+      box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.35), 0 4px 10px rgba(0, 0, 0, 0.35);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .water-glass-liquid {
+      width: 100%;
+      height: 80%;
+      background: linear-gradient(180deg, #42a5f5 0%, #1e88e5 60%, #0d47a1 100%);
+      border-radius: 0 0 9px 9px;
+      position: relative;
+      box-shadow: 0 0 10px rgba(30, 136, 229, 0.7);
+    }
+
+    .water-glass-liquid::before {
+      content: '';
+      position: absolute;
+      top: -3px;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: rgba(227, 242, 253, 0.85);
+      border-radius: 50%;
+      box-shadow: 0 0 4px #fff;
+    }
+
+    .water-glass-sheen {
+      position: absolute;
+      top: 3px;
+      left: 5px;
+      width: 4px;
+      height: 48px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.05) 100%);
+      border-radius: 3px;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .water-glass-label {
+      position: absolute;
+      top: 52%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
+      letter-spacing: -0.02em;
+      z-index: 4;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .water-glass-sub {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--blue);
+      letter-spacing: 0.02em;
+    }
+
+    /* Vanishing Drinking Animation */
+    @keyframes drink-and-vanish {
+      0% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+      }
+
+      30% {
+        transform: scale(1.15) rotate(-20deg) translateY(-8px);
+        opacity: 0.95;
+      }
+
+      65% {
+        transform: scale(0.65) rotate(25deg) translateY(-22px);
+        opacity: 0.5;
+        filter: blur(2px);
+      }
+
+      100% {
+        transform: scale(0) rotate(45deg) translateY(-45px);
+        opacity: 0;
+        filter: blur(6px);
+      }
+    }
+
+    .water-glass-card.drinking {
+      animation: drink-and-vanish 0.65s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+      pointer-events: none;
+    }
+
+    /* Task Completed Celebration Screen */
+    .water-task-completed {
+      background: linear-gradient(135deg, rgba(85, 136, 221, 0.2) 0%, rgba(76, 139, 74, 0.25) 100%);
+      border: 1.5px solid var(--ac-green);
+      border-radius: 16px;
+      padding: 1.4rem 1rem;
+      text-align: center;
+      animation: pop-celebrate 0.5s ease-out;
+      box-shadow: 0 0 30px rgba(76, 139, 74, 0.25);
+      margin: 0.75rem 0;
+    }
+
+    @keyframes pop-celebrate {
+      0% {
+        transform: scale(0.9);
+        opacity: 0;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* Bottom Row */
+    .bot-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1.25rem;
+    }
+
+    /* Meals and Recs */
+    .meal-log-item {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .65rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .meal-log-item:last-child {
+      border-bottom: none;
+    }
+
+    .meal-badge {
+      display: inline-flex;
+      padding: .2rem .6rem;
+      border-radius: 6px;
+      font-size: .72rem;
+      font-weight: 700;
+    }
+
+    .rec-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: .85rem;
+    }
+
+    .rec-item {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      display: flex;
+      gap: .75rem;
+      align-items: center;
+      transition: border-color .2s;
+    }
+
+    .rec-item:hover {
+      border-color: var(--ac-green);
+    }
+
+    .rec-emoji {
+      font-size: 1.6rem;
+      flex-shrink: 0;
+    }
+
+    .rec-name {
+      font-size: .875rem;
+      font-weight: 600;
+      margin-bottom: .2rem;
+    }
+
+    .rec-cal {
+      font-size: .75rem;
+      color: var(--text-muted);
+    }
+
+    /* Recent workouts */
+    .workout-item {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: .65rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .workout-item:last-child {
+      border-bottom: none;
+    }
+
+    .w-icon {
+      width: 38px;
+      height: 38px;
+      background: var(--dk-green);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    /* BMI Card & Spectrum Bar */
+    .bmi-display {
+      text-align: center;
+      padding: 0.5rem 0;
+    }
+
+    .bmi-val {
+      font-family: 'Outfit', sans-serif;
+      font-size: 3.2rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .bmi-cat-badge {
+      display: inline-block;
+      font-size: .8rem;
+      font-weight: 700;
+      padding: 0.25rem 0.8rem;
+      border-radius: 14px;
+      margin-top: .4rem;
+    }
+
+    .bmi-spectrum-bar {
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #5588dd 0%, #4C8B4A 35%, #E5C200 70%, #e05555 100%);
+      margin: 1.25rem 0 0.5rem;
+      position: relative;
+    }
+
+    .bmi-pin {
+      position: absolute;
+      top: -5px;
+      width: 4px;
+      height: 18px;
+      background: #fff;
+      border-radius: 2px;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
+      transition: left 0.5s ease;
+    }
+
+    @media(max-width:1100px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .mid-row,
+      .bot-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media(max-width:768px) {
+      .app-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .app-sidebar {
+        position: relative;
+        height: auto;
+        width: 100%;
+      }
+
+      .app-main {
+        padding: 1.25rem;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-layout">
+
+    <!-- Sidebar -->
+    <aside class="app-sidebar">
+      <a href="dashboard.html" class="s-logo">
+        <div class="s-icon">🥗</div>
+        <span>NutriTrack</span>
+      </a>
+      <div class="nav-section">
+        <div class="nav-section-label">Main</div>
+        <a href="dashboard.html" class="nav-item active"><span class="ni">🏠</span> Dashboard</a>
+        <a href="food.html" class="nav-item"><span class="ni">🥗</span> Food & Meals</a>
+        <a href="workout.html" class="nav-item"><span class="ni">💪</span> Workouts</a>
+        <a href="water.html" class="nav-item"><span class="ni">💧</span> Water Tracker</a>
+        <a href="weight.html" class="nav-item"><span class="ni">⚖️</span> Weight</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Insights & System</div>
+        <a href="reports.html" class="nav-item"><span class="ni">📊</span> Reports</a>
+        <a href="profile.html" class="nav-item"><span class="ni">👤</span> Profile</a>
+        <a href="settings.html" class="nav-item"><span class="ni">⚙️</span> Settings</a>
+        <a href="about.html" class="nav-item"><span class="ni">ℹ️</span> About Project</a>
+      </div>
+      <div class="sidebar-bottom">
+        <div class="user-pill" onclick="window.location.href='profile.html'">
+          <div class="user-avatar" id="sideAvatar">U</div>
+          <div class="user-info">
+            <div class="user-name" id="sideUserName">Loading…</div>
+            <div class="user-goal" id="sideGoal">—</div>
+          </div>
+        </div>
+        <div class="nav-item" style="margin-top:.25rem;color:var(--red)" onclick="logoutUser()">
+          <span class="ni">🚪</span> Log Out
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <div class="page-header">
+        <div class="header-titles">
+          <h1>Good <span id="greeting">Morning</span>, <span id="userName">…</span> 👋</h1>
+          <div class="header-meta">
+            <span>📅 <span id="todayDate">—</span></span>
+            <div class="clock-badge">
+              <span class="pulse-dot"></span>
+              <span id="dashLiveClock">--:--:--</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:0.75rem;align-items:center">
+          <a href="food.html" class="btn btn-primary btn-sm">🍽️ + Log Meal</a>
+          <a href="workout.html" class="btn btn-secondary btn-sm">🏋️ + Log Workout</a>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <!-- Calories Consumed -->
+        <div class="scard">
+          <div class="scard-top">
+            <div class="sc-icon" style="background:rgba(76,139,74,.15);color:var(--ac-green)">🔥</div>
+            <span class="scard-tag" id="calPercentTag">0%</span>
+          </div>
+          <div class="sc-val" id="calConsumed">—</div>
+          <div class="sc-label">kcal consumed today</div>
+          <div class="sc-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" id="calBar" style="width:0%"></div>
+            </div>
+          </div>
+          <div style="font-size:.74rem;color:var(--text-dim);margin-top:.4rem">Target: <strong id="calTarget"
+              style="color:var(--text)">—</strong> kcal</div>
+        </div>
+
+        <!-- Water Hydration -->
+        <div class="scard">
+          <div class="scard-top">
+            <div class="sc-icon" style="background:rgba(85,136,221,.15);color:var(--blue)">💧</div>
+            <span class="scard-tag" id="waterPercentTag" style="color:var(--blue)">0%</span>
+          </div>
+          <div class="sc-val" id="waterIntake" style="color:var(--blue)">—</div>
+          <div class="sc-label">ml water consumed</div>
+          <div class="sc-progress">
+            <div class="progress-bar progress-blue">
+              <div class="progress-fill" id="waterBar" style="width:0%"></div>
+            </div>
+          </div>
+          <div style="font-size:.74rem;color:var(--text-dim);margin-top:.4rem">Daily Goal: <strong id="waterGoal"
+              style="color:var(--text)">—</strong> ml</div>
+        </div>
+
+        <!-- Calories Burned -->
+        <div class="scard">
+          <div class="scard-top">
+            <div class="sc-icon" style="background:rgba(229,194,0,.15);color:var(--gold)">🏋️</div>
+            <span class="scard-tag" id="burnSessionTag" style="color:var(--gold)">0 active</span>
+          </div>
+          <div class="sc-val" id="calBurned" style="color:var(--gold)">—</div>
+          <div class="sc-label">kcal burned in workouts</div>
+          <div class="sc-progress">
+            <div class="progress-bar progress-gold">
+              <div class="progress-fill" id="burnBar" style="width:0%"></div>
+            </div>
+          </div>
+          <div style="font-size:.74rem;color:var(--text-dim);margin-top:.4rem"><strong id="sessionCount">0</strong>
+            sessions completed</div>
+        </div>
+
+        <!-- Net Calories -->
+        <div class="scard">
+          <div class="scard-top">
+            <div class="sc-icon" style="background:rgba(224,85,85,.15);color:var(--red)">⚖️</div>
+            <span class="scard-tag" id="netCalHint">balanced</span>
+          </div>
+          <div class="sc-val" id="netCal">—</div>
+          <div class="sc-label">net calories balance</div>
+          <div class="sc-progress">
+            <div class="progress-bar" style="background:rgba(255,255,255,0.06)">
+              <div class="progress-fill" id="netBar" style="width:50%;background:var(--ac-light)"></div>
+            </div>
+          </div>
+          <div style="font-size:.74rem;color:var(--text-dim);margin-top:.4rem">Formula: consumed − burned</div>
+        </div>
+      </div>
+
+      <!-- Middle Row: Macros & 250ml Water Glasses -->
+      <div class="mid-row">
+        <!-- Macros Donut Card -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🧬 Macronutrient Balance</span>
+            <span style="font-size:.8rem;color:var(--text-muted)" id="macroDate">Today</span>
+          </div>
+          <div class="macros-row">
+            <div class="macro-chart-wrap">
+              <canvas id="macroChart" width="140" height="140"></canvas>
+            </div>
+            <div class="macro-legend" id="macroLegend">
+              <div class="ml-item">
+                <span class="ml-dot" style="background:#4C8B4A"></span>
+                <span class="ml-name">Protein</span>
+                <span class="ml-val" id="prot">—g</span>
+              </div>
+              <div class="ml-item">
+                <span class="ml-dot" style="background:#E5C200"></span>
+                <span class="ml-name">Carbohydrates</span>
+                <span class="ml-val" id="carb">—g</span>
+              </div>
+              <div class="ml-item">
+                <span class="ml-dot" style="background:#e08040"></span>
+                <span class="ml-name">Healthy Fats</span>
+                <span class="ml-val" id="fat">—g</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Water Glasses Arena -->
+        <div class="water-section-card">
+          <div class="water-header-row">
+            <span class="card-title" style="display:flex;align-items:center;gap:0.5rem">
+              <span>💧</span> Water Today (250ml Glasses)
+            </span>
+            <span class="water-count-badge" id="waterGlassesCountBadge">8 glasses left</span>
+          </div>
+
+          <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.4rem">
+            Click a glass of water when you drink to log <strong>250ml</strong> with a drinking animation:
+          </p>
+
+          <!-- Dynamic 250ml Water Glasses Grid / Celebration Container -->
+          <div id="waterGlassesContainer">
+            <div class="water-glasses-grid" id="waterGlassesGrid">
+              <!-- Dynamically populated glasses -->
+            </div>
+          </div>
+
+          <div
+            style="display:flex;gap:.75rem;align-items:center;margin-top:.75rem;padding-top:0.75rem;border-top:1px solid var(--border)">
+            <input class="form-control" type="number" id="waterAmount" placeholder="Amount (ml)" value="250" min="50"
+              max="2000" style="max-width:140px" />
+            <button class="btn btn-primary btn-sm" onclick="quickLogWater()">+ Custom Log</button>
+            <a href="water.html" style="font-size:.8rem;color:var(--blue);margin-left:auto;text-decoration:none">Water
+              Analytics →</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Row: Meals, Recommendations, BMI, Recent Workouts -->
+      <div class="bot-row">
+        <!-- Meals and Recommendations -->
+        <div style="display:flex;flex-direction:column;gap:1.25rem">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">🍽️ Today's Logged Meals</span>
+              <a href="food.html" style="font-size:.8rem;color:var(--ac-green)">+ Add Meal →</a>
+            </div>
+            <div id="mealLogList">
+              <div class="spinner"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">🌟 Smart Recommendations</span>
+              <a href="food.html" style="font-size:.8rem;color:var(--gold)">Explore All →</a>
+            </div>
+            <div class="rec-grid" id="recFoodGrid">
+              <div class="spinner"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BMI & Workouts -->
+        <div style="display:flex;flex-direction:column;gap:1.25rem">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">📐 Body Mass Index</span>
+              <a href="profile.html" style="font-size:.8rem">Update Metrics →</a>
+            </div>
+            <div class="bmi-display">
+              <div class="bmi-val" id="bmiVal">—</div>
+              <div><span class="bmi-cat-badge" id="bmiCat"
+                  style="background:rgba(76,139,74,0.15);color:var(--ac-green)">Calculating...</span></div>
+              <div class="bmi-spectrum-bar">
+                <div class="bmi-pin" id="bmiMarker" style="left:50%"></div>
+              </div>
+              <div
+                style="display:flex;justify-content:space-between;font-size:0.68rem;color:var(--text-dim);margin-top:0.3rem">
+                <span>Under (&lt;18.5)</span>
+                <span>Normal (18.5-24.9)</span>
+                <span>Over (25-29.9)</span>
+                <span>Obese (30+)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">🏋️ Recent Workout Sessions</span>
+              <a href="workout.html" style="font-size:.8rem;color:var(--gold)">Open Arena →</a>
+            </div>
+            <div id="recentWorkouts">
+              <div class="spinner"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script src="js/api.js"></script>
+  <script>
+    let macroChart = null;
+    let currentWaterTotal = 0;
+    let currentWaterGoal = 100000;
+
+    // Live Digital Clock
+    function updateDashboardClock() {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+      const clockEl = document.getElementById('dashLiveClock');
+      if (clockEl) clockEl.textContent = timeStr;
+    }
+    setInterval(updateDashboardClock, 1000);
+    updateDashboardClock();
+
+    // Natural Web Audio Water Drinking Sound
+    function playDrinkWaterSound() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+
+        // Water drop / swallow chime
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(520, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(320, ctx.currentTime + 0.12);
+        osc.frequency.exponentialRampToValueAtTime(780, ctx.currentTime + 0.28);
+
+        gain.gain.setValueAtTime(0.25, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start();
+        osc.stop(ctx.currentTime + 0.35);
+      } catch (e) { }
+    }
+
+    async function loadDashboard() {
+      try {
+        const userData = await Auth.me();
+        if (!userData) { window.location.href = 'login.html'; return; }
+
+        // Greet user
+        const hr = new Date().getHours();
+        const greeting = hr < 12 ? 'Morning' : hr < 17 ? 'Afternoon' : 'Evening';
+        document.getElementById('greeting').textContent = greeting;
+        document.getElementById('userName').textContent = userData.name || userData.fullName || 'Champion';
+        document.getElementById('todayDate').textContent = todayFormatted();
+
+        // Sidebar
+        const sideUserName = document.getElementById('sideUserName');
+        if (sideUserName) sideUserName.textContent = userData.name || userData.fullName || 'User';
+        const sideGoal = document.getElementById('sideGoal');
+        if (sideGoal) sideGoal.textContent = (userData.goal || 'HEALTH').replace(/_/g, ' ');
+        renderUserAvatar('sideAvatar', userData);
+
+        // Target Calories
+        const target = userData.targetCalories || 2000;
+        document.getElementById('calTarget').textContent = target.toLocaleString();
+
+        // Water Goal: Set to 100,000 ml
+        localStorage.setItem('nutri_water_target', '100000');
+        currentWaterGoal = 100000;
+        document.getElementById('waterGoal').textContent = currentWaterGoal.toLocaleString();
+
+        const waterData = await Track.getWaterToday();
+        currentWaterTotal = waterData.totalMl || 0;
+        renderWaterGlasses(currentWaterTotal, currentWaterGoal);
+
+        // Meals today
+        const mealLogs = await Meal.getTodayLogs();
+        renderMealLogs(mealLogs, target);
+
+        // Workouts today
+        const workoutSessions = await Workout.getSessionsToday();
+        const totalBurned = workoutSessions.reduce((acc, s) => acc + (s.actualCalories || 0), 0);
+        document.getElementById('calBurned').textContent = totalBurned.toLocaleString();
+        document.getElementById('sessionCount').textContent = workoutSessions.length;
+        document.getElementById('burnSessionTag').textContent = `${workoutSessions.length} done`;
+        document.getElementById('burnBar').style.width = Math.min((totalBurned / 500) * 100, 100) + '%';
+        renderRecentWorkouts(workoutSessions);
+
+        // BMI
+        if (userData.bmi) {
+          const bmi = parseFloat(userData.bmi).toFixed(1);
+          document.getElementById('bmiVal').textContent = bmi;
+          const catEl = document.getElementById('bmiCat');
+          const markerEl = document.getElementById('bmiMarker');
+          let cat = 'Normal Weight';
+          let color = 'var(--ac-green)';
+          let pinPct = 40;
+
+          if (bmi < 18.5) {
+            cat = 'Underweight'; color = 'var(--blue)'; pinPct = Math.max(5, (bmi / 18.5) * 25);
+          } else if (bmi <= 24.9) {
+            cat = 'Normal Weight (Optimal)'; color = 'var(--ac-green)'; pinPct = 25 + ((bmi - 18.5) / 6.4) * 35;
+          } else if (bmi <= 29.9) {
+            cat = 'Overweight'; color = 'var(--gold)'; pinPct = 60 + ((bmi - 25) / 4.9) * 20;
+          } else {
+            cat = 'Obesity Zone'; color = 'var(--red)'; pinPct = Math.min(95, 80 + ((bmi - 30) / 10) * 15);
+          }
+
+          catEl.textContent = cat;
+          catEl.style.color = color;
+          catEl.style.background = `rgba(255,255,255,0.06)`;
+          if (markerEl) markerEl.style.left = `${pinPct}%`;
+        }
+
+        // Food Recommendations
+        const recs = await Meal.getRecommendations();
+        renderRecFoods(recs.slice(0, 4));
+
+      } catch (e) {
+        if (e.message === 'Authentication required') { window.location.href = 'login.html'; return; }
+        showToast('Dashboard data sync: ' + e.message, 'error');
+      }
+    }
+
+    // ════════════════════════════════════════════════════════
+    // RENDER 250ML WATER GLASSES (100,000 ML = 6 GLASSES) & DRINKING VANISH
+    // ════════════════════════════════════════════════════════
+    function renderWaterGlasses(totalMl, goalMl) {
+      document.getElementById('waterIntake').textContent = totalMl.toLocaleString();
+      const pct = Math.min(Math.round((totalMl / goalMl) * 100), 100);
+      document.getElementById('waterBar').style.width = pct + '%';
+      document.getElementById('waterPercentTag').textContent = pct + '%';
+
+      const totalGlasses = Math.max(1, Math.ceil(goalMl / 250));
+      const drunkGlasses = Math.floor(totalMl / 250);
+      const remainingGlasses = Math.max(0, totalGlasses - drunkGlasses);
+
+      const container = document.getElementById('waterGlassesContainer');
+      const countBadge = document.getElementById('waterGlassesCountBadge');
+
+      if (remainingGlasses === 0 || totalMl >= goalMl) {
+        if (countBadge) countBadge.innerHTML = '✨ 100,000 ml Completed!';
+        container.innerHTML = `
+      <div class="water-task-completed">
+        <div style="font-size:2.8rem;margin-bottom:0.35rem;filter:drop-shadow(0 0 12px rgba(229,194,0,0.6))">🏆</div>
+        <h3 style="font-size:1.25rem;font-weight:800;color:var(--text);margin-bottom:0.25rem">100,000 ml Hydration Task Completed! 🎉</h3>
+        <p style="font-size:0.86rem;color:var(--text-muted);margin-bottom:0.85rem">
+          All 6 glasses vanished! You drank <strong>${totalMl.toLocaleString()} ml</strong> out of your <strong>${goalMl.toLocaleString()} ml</strong> daily goal!
+        </p>
+        <button class="btn btn-secondary btn-sm" onclick="drinkWaterGlass(null, 250)" style="font-size:0.82rem;gap:0.4rem">
+          🥛 Drink Bonus Glass (+250ml)
+        </button>
+      </div>`;
+        return;
+      }
+
+      if (countBadge) {
+        countBadge.textContent = `${remainingGlasses.toLocaleString()} glasses left (${totalMl.toLocaleString()} / ${goalMl.toLocaleString()} ml)`;
+      }
+
+      // Display an interactive active batch of up to 16 glasses on screen for fluid interaction
+      const visibleCount = Math.min(remainingGlasses, 16);
+
+      container.innerHTML = `
+    <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:0.5rem;display:flex;justify-content:space-between">
+      <span>🥛 Goal: <strong>${goalMl.toLocaleString()} ml</strong> (${totalGlasses.toLocaleString()} glasses)</span>
+      <span>Drunk: <strong>${drunkGlasses.toLocaleString()}</strong> / Remaining: <strong>${remainingGlasses.toLocaleString()}</strong></span>
+    </div>
+    <div class="water-glasses-grid" id="waterGlassesGrid">
+      ${Array.from({ length: visibleCount }, (_, i) => `
+        <div class="water-glass-card" onclick="drinkWaterGlass(this, 250)" title="Click to drink this 250ml glass of water! (${drunkGlasses + i + 1} of ${totalGlasses})">
+          <div class="water-glass-shape">
+            <div class="water-glass-sheen"></div>
+            <div class="water-glass-liquid"></div>
+            <div class="water-glass-label">250 ml</div>
+          </div>
+          <span class="water-glass-sub">Drink 🥛</span>
+        </div>
+      `).join('')}
+    </div>`;
+    }
+
+    // Interactive Drink Glass Click with Sound & Vanish Animation
+    async function drinkWaterGlass(glassCardElement, amount = 250) {
+      playDrinkWaterSound();
+
+      if (glassCardElement && glassCardElement.classList) {
+        glassCardElement.classList.add('drinking');
+        // Wait for the vanishing keyframe to play
+        await new Promise(res => setTimeout(res, 480));
+        glassCardElement.remove();
+      }
+
+      try {
+        await Track.logWater(amount, '250ml Glass Drunk');
+        showToast(`Drank 250ml glass of fresh water! 💧`, 'success');
+
+        currentWaterTotal += amount;
+        renderWaterGlasses(currentWaterTotal, currentWaterGoal);
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    async function quickLogWater(customAmount) {
+      const amount = typeof customAmount === 'number' ? customAmount : parseInt(document.getElementById('waterAmount').value);
+      if (!amount || amount < 50) { showToast('Enter at least 50ml', 'error'); return; }
+      try {
+        await Track.logWater(amount, 'Dashboard water log');
+        showToast(`${amount.toLocaleString()}ml water logged! 💧`, 'success');
+        const waterData = await Track.getWaterToday();
+        currentWaterTotal = waterData.totalMl || 0;
+        currentWaterGoal = 100000;
+        renderWaterGlasses(currentWaterTotal, currentWaterGoal);
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    function renderMealLogs(logs, target) {
+      const container = document.getElementById('mealLogList');
+      if (!logs || logs.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-muted);font-size:.875rem;text-align:center;padding:1rem">No meals logged today. <a href="food.html" style="color:var(--ac-green)">+ Add your first meal</a></p>';
+        document.getElementById('calConsumed').textContent = '0';
+        document.getElementById('calBar').style.width = '0%';
+        document.getElementById('calPercentTag').textContent = '0%';
+        document.getElementById('prot').textContent = '0g';
+        document.getElementById('carb').textContent = '0g';
+        document.getElementById('fat').textContent = '0g';
+        renderMacroChart(0, 0, 0);
+        document.getElementById('netCal').textContent = '0';
+        return;
+      }
+      const totalCal = logs.reduce((a, l) => a + (l.calories || 0), 0);
+      const totalProt = logs.reduce((a, l) => a + (l.protein || 0), 0);
+      const totalCarb = logs.reduce((a, l) => a + (l.carbs || 0), 0);
+      const totalFat = logs.reduce((a, l) => a + (l.fat || 0), 0);
+
+      document.getElementById('calConsumed').textContent = Math.round(totalCal).toLocaleString();
+      const pct = Math.min(Math.round((totalCal / target) * 100), 100);
+      document.getElementById('calBar').style.width = pct + '%';
+      document.getElementById('calPercentTag').textContent = pct + '%';
+
+      document.getElementById('prot').textContent = Math.round(totalProt) + 'g';
+      document.getElementById('carb').textContent = Math.round(totalCarb) + 'g';
+      document.getElementById('fat').textContent = Math.round(totalFat) + 'g';
+      renderMacroChart(totalProt, totalCarb, totalFat);
+
+      const burned = parseInt(document.getElementById('calBurned').textContent.replace(/,/g, '')) || 0;
+      const net = Math.round(totalCal - burned);
+      document.getElementById('netCal').textContent = net.toLocaleString();
+
+      const netHint = document.getElementById('netCalHint');
+      if (net > 0) {
+        netHint.textContent = '⬆ surplus';
+        netHint.style.color = 'var(--gold)';
+      } else if (net < 0) {
+        netHint.textContent = '⬇ deficit';
+        netHint.style.color = 'var(--ac-green)';
+      } else {
+        netHint.textContent = 'balanced';
+        netHint.style.color = 'var(--text-muted)';
+      }
+
+      const mealColors = { BREAKFAST: 'var(--gold)', LUNCH: 'var(--ac-green)', DINNER: 'var(--blue)', SNACK: 'var(--orange)' };
+      container.innerHTML = logs.slice(0, 5).map(l => `
+    <div class="meal-log-item">
+      <span class="meal-badge" style="background:rgba(255,255,255,0.06);color:${mealColors[l.mealType] || 'var(--ac-green)'}">${l.mealType || 'MEAL'}</span>
+      <span style="flex:1;font-size:.875rem;font-weight:600">${l.foodName || 'Food Item'}</span>
+      <span style="font-size:.8rem;color:var(--text-muted)">${l.quantityGrams}g</span>
+      <span style="font-size:.85rem;font-weight:700;color:var(--gold)">${Math.round(l.calories || 0)} kcal</span>
+    </div>`).join('') + (logs.length > 5 ? `<p style="text-align:center;font-size:.8rem;color:var(--text-muted);margin-top:.5rem">+${logs.length - 5} more items</p>` : '');
+    }
+
+    function renderMacroChart(prot, carb, fat) {
+      const ctx = document.getElementById('macroChart').getContext('2d');
+      if (macroChart) macroChart.destroy();
+      const total = prot + carb + fat;
+      const hasData = total > 0;
+      const pPct = hasData ? Math.round((prot / total) * 100) : 0;
+      const cPct = hasData ? Math.round((carb / total) * 100) : 0;
+      const fPct = hasData ? Math.max(0, 100 - pPct - cPct) : 0;
+
+      document.getElementById('prot').textContent = hasData ? `${Math.round(prot)}g (${pPct}%)` : '0g (0%)';
+      document.getElementById('carb').textContent = hasData ? `${Math.round(carb)}g (${cPct}%)` : '0g (0%)';
+      document.getElementById('fat').textContent = hasData ? `${Math.round(fat)}g (${fPct}%)` : '0g (0%)';
+
+      macroChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: hasData ? ['Protein', 'Carbs', 'Fat'] : ['No Data'],
+          datasets: [{
+            data: hasData ? [prot, carb, fat] : [1],
+            backgroundColor: hasData ? ['#4C8B4A', '#E5C200', '#e08040'] : ['rgba(255,255,255,0.08)'],
+            borderWidth: 0,
+            cutout: '72%'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              enabled: hasData,
+              callbacks: {
+                label: (ctx) => ` ${ctx.label}: ${Math.round(ctx.raw)}g (${Math.round((ctx.raw / total) * 100)}%)`
+              }
+            }
+          },
+          animation: { duration: 600 }
+        }
+      });
+    }
+
+    function renderRecFoods(foods) {
+      const emojis = ['🥩', '🐟', '🥦', '🍳', '🥑', '🍎', '🌾', '🥛', '🧆', '🫑'];
+      document.getElementById('recFoodGrid').innerHTML = foods.map((f, i) => `
+    <div class="rec-item">
+      <span class="rec-emoji">${emojis[i % emojis.length]}</span>
+      <div style="flex:1;min-width:0">
+        <div class="rec-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.name}</div>
+        <div class="rec-cal">${f.calories} kcal/100g · P:${f.protein}g C:${f.carbs}g F:${f.fat}g</div>
+      </div>
+    </div>`).join('') || '<p style="color:var(--text-muted);font-size:.875rem">No recommendations yet.</p>';
+    }
+
+    function renderRecentWorkouts(sessions) {
+      const icons = ['🏋️', '🏃', '🚴', '🧘', '⛹️', '🤸'];
+      document.getElementById('recentWorkouts').innerHTML = sessions.length === 0
+        ? '<p style="color:var(--text-muted);font-size:.875rem;text-align:center;padding:.75rem">No workouts today. <a href="workout.html" style="color:var(--gold)">Start a session →</a></p>'
+        : sessions.slice(0, 4).map((s, i) => `
+    <div class="workout-item">
+      <div class="w-icon">${icons[i % icons.length]}</div>
+      <div style="flex:1">
+        <div style="font-size:.875rem;font-weight:600">${s.planTitle || ('Session #' + s.sessionId)}</div>
+        <div style="font-size:.75rem;color:var(--text-muted)">${s.status}</div>
+      </div>
+      <span style="font-size:.85rem;font-weight:700;color:var(--gold)">${s.actualCalories || 0} kcal</span>
+    </div>`).join('');
+    }
+
+    async function logoutUser() {
+      try { await Auth.logout(); } catch { }
+      localStorage.removeItem('currentUser');
+      window.location.href = 'login.html';
+    }
+
+    window.addEventListener('nutri_water_logged', () => loadDashboard());
+    window.addEventListener('nutri_water_goal_updated', () => loadDashboard());
+
+    loadDashboard();
+  </script>
+</body>
+
+</html>
